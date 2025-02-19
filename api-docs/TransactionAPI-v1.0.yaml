@@ -1,0 +1,180 @@
+swagger: "2.0"
+info:
+  description: "Demo project showcasing capabilities of Gentian Licenji as a Senior Software Engineer. "
+  version: "1.0"
+  title: "Transaction Server"
+  termsOfService: "http://swagger.io/terms/"
+  contact:
+    name: "Gentian Licenji"
+    email: "gentian.licenji@gmail.com"
+  license:
+    name: "Sisal Albania"
+    url: "https://sisal.al/"
+basePath: "/"
+tags:
+  - name: "Transactions"
+    description: "Group of APIs providing transaction operations."
+    externalDocs:
+      description: "Find out more about our store"
+      url: "http://swagger.io"
+# Security Definitions
+securityDefinitions:
+  HmacAuth:
+    type: apiKey
+    in: header
+    name: X-HMAC-Signature
+    description: >
+      Custom HMAC-based authentication header. 
+      Must be accompanied by X-API-Key and X-Timestamp.
+
+# Applies HmacAuth to all endpoints (modify at each path if you want granular control)
+security:
+  - HmacAuth: []
+## NOTE: All security definitions will be handled by a custom Request filter in spring boot.
+#  As a result, we can implement better decoupling by not adding these header definitions to the API controller layer.
+# The request filter will also centralize authentication for all future API implementations.
+# This can be fine-tuned later using a SecurityFilterChain bean in the config layer.
+
+# Common responses
+responses:
+  BadRequest:
+    description: "Bad request from client, check request body for errors."
+    schema:
+      $ref: "#/definitions/ErrorResponse"
+  Unauthorized:
+    description: "Unauthorized - Authentication failed."
+    schema:
+      $ref: '#/definitions/ErrorResponse'
+  Forbidden:
+    description: "Forbidden request - Server refuses to fulfill the request."
+    schema:
+      $ref: "#/definitions/ErrorResponse"
+  NotFound:
+    description: "The specified resource was not found."
+    schema:
+      $ref: '#/definitions/ErrorResponse'
+  ServerError:
+    description: "Server errors."
+    schema:
+      $ref: "#/definitions/ErrorResponse"
+  ServerTimeout:
+    description: "Service Unavailable."
+    schema:
+      $ref: "#/definitions/ErrorResponse"
+  RequestTimeout:
+    description: "Request Unavailable."
+    schema:
+      $ref: "#/definitions/ErrorResponse"
+    headers:
+      Content-Language:
+        type: string
+        description: "Language of content returned."
+      Content-Type:
+        type: string
+        description: "Format of content delivered."
+      Status-Code:
+        type: string
+        description: "HTTPS request code."
+paths:
+  /api/transactions:
+    post:
+      tags:
+        - "Transactions"
+      summary: "Create a new transaction"
+      operationId: createTransaction
+      description: >
+        API will handle the
+        creation of financial transactions, enforce specific business rules, and implement a custom
+        authentication mechanism
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: body
+          name: transaction
+          description: "Transaction object that needs to be created."
+          required: true
+          schema:
+            $ref: "#/definitions/Transaction"
+      responses:
+        "201":
+          description: "Transaction created successfully."
+          schema:
+            $ref: "#/definitions/Transaction"
+        400:
+          $ref: "#/responses/BadRequest"
+        401:
+          $ref: "#/responses/Unauthorized"
+        403:
+          $ref: "#/responses/Forbidden"
+        404:
+          $ref: "#/responses/NotFound"
+        500:
+          $ref: "#/responses/ServerError"
+        503:
+          $ref: "#/responses/ServerTimeout"
+definitions:
+  Transaction:
+    type: "object"
+    required:
+      - accountId
+      - transactionType
+      - amount
+    properties:
+      transactionId:
+        type: "string"
+        format: "uuid"
+        description: "Unique identifier for the transaction."
+      accountId:
+        type: "string"
+        description: "Source account identifier."
+      transactionType:
+        type: "string"
+        description: "The type of transaction."
+        enum:
+          - DEPOSIT
+          - WITHDRAWAL
+      amount:
+        type: "number"
+        format: "double"
+        description: "The amount of the transaction."
+        maximum: 10000
+      timestamp:
+        type: "string"
+        format: "date-time"
+        description: "Date and time of the transaction."
+      status:
+        type: "string"
+        description: "Current status of the transaction."
+        enum:
+          - COMPLETED
+          - FAILED
+  Account:
+    type: object
+    required:
+      - accountId
+      - balance
+    properties:
+      accountId:
+        type: string
+        description: "Unique identifier for the account."
+      balance:
+        type: number
+        format: double
+        description: "Current balance of the account."
+      createdAt:
+        type: string
+        format: date-time
+        description: "Timestamp when the account was created."
+  ErrorResponse:
+    type: object
+    properties:
+      httpErrorCode:
+        type: string
+      errorCode:
+        type: string
+        maxLength: 10
+      errorMessage:
+        type: string
+        maxLength: 1024
