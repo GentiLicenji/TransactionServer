@@ -81,7 +81,7 @@ paths:
       tags:
         - "Transactions"
       summary: "Create a new transaction"
-      operationId: createTransaction
+      operationId: "createTransaction"
       description: >
         API will handle the
         creation of financial transactions, enforce specific business rules, and implement a custom
@@ -96,12 +96,12 @@ paths:
           description: "Transaction object that needs to be created."
           required: true
           schema:
-            $ref: "#/definitions/Transaction"
+            $ref: "#/definitions/TransactionRequest"
       responses:
         "201":
           description: "Transaction created successfully."
           schema:
-            $ref: "#/definitions/Transaction"
+            $ref: "#/definitions/TransactionResponse"
         400:
           $ref: "#/responses/BadRequest"
         401:
@@ -115,12 +115,33 @@ paths:
         503:
           $ref: "#/responses/ServerTimeout"
 definitions:
-  Transaction:
+  TransactionRequest:
     type: "object"
     required:
       - accountId
       - transactionType
       - amount
+    properties:
+      accountId:
+        type: "string"
+        description: "Source account identifier."
+      transactionType:
+        type: "string"
+        description: "The type of transaction."
+        enum:
+          - DEPOSIT
+          - WITHDRAWAL
+      amount:
+        type: "number"
+        format: "double"
+        description: "The amount of the transaction."
+        maximum: 10000
+  TransactionResponse:
+    type: "object"
+    required:
+      - transactionId
+      - accountId
+      - status
     properties:
       transactionId:
         type: "string"
@@ -150,23 +171,6 @@ definitions:
         enum:
           - COMPLETED
           - FAILED
-  Account:
-    type: object
-    required:
-      - accountId
-      - balance
-    properties:
-      accountId:
-        type: string
-        description: "Unique identifier for the account."
-      balance:
-        type: number
-        format: double
-        description: "Current balance of the account."
-      createdAt:
-        type: string
-        format: date-time
-        description: "Timestamp when the account was created."
   ErrorResponse:
     type: object
     properties:
