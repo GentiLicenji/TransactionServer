@@ -30,7 +30,7 @@ public class AccountEntity {
     private Double balance;
 
     @CreationTimestamp
-    @Column(name = "created_at", updatable = false)
+    @Column(name = "created_at", updatable = false, nullable = false)
     private OffsetDateTime createdAt;
 
     // Optional: Add audit fields
@@ -41,13 +41,18 @@ public class AccountEntity {
     @Column(name = "last_modified_at")
     private OffsetDateTime lastModifiedAt;
 
-    // Optional: Add PrePersist and PreUpdate handlers
+    /**
+     * Upon account creation, it will automatically generate createdAt and lastModifiedAt.
+     */
     @PrePersist
     protected void onCreate() {
         createdAt = OffsetDateTime.now();
         lastModifiedAt = createdAt;
     }
 
+    /**
+     * Upon account update, it will automatically update lastModifiedAt.
+     */
     @PreUpdate
     protected void onUpdate() {
         lastModifiedAt = OffsetDateTime.now();

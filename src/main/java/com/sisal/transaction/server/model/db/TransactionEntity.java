@@ -74,6 +74,9 @@ public class TransactionEntity {
         COMPLETED, FAILED
     }
 
+    /**
+     * Upon transaction creation, it will automatically generate tranId and timeStamp.
+     */
     @PrePersist
     protected void onCreate() {
         if (transactionId == null) {
