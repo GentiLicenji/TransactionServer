@@ -9,14 +9,13 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
 @SpringBootApplication
 @ComponentScan(basePackages = {
-        "com.sisal.transaction.server.config",
-        "com.sisal.transaction.server.test.controller",
         "com.sisal.transaction.server.controller",
         "com.sisal.transaction.server.delegate",
         "com.sisal.transaction.server.service",
         "com.sisal.transaction.server.model.rest",
-        "com.sisal.transaction.server.model.db",
-        "com.sisal.transaction.server.exception"})
+        "com.sisal.transaction.server.repository",
+        "com.sisal.transaction.server.exception",
+        "com.sisal.transaction.server.config"})
 @EntityScan("com.sisal.transaction.server.model.db")
 @EnableJpaRepositories("com.sisal.transaction.server.repository")
 public class AppStarter extends SpringBootServletInitializer {
