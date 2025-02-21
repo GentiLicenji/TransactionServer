@@ -15,6 +15,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
         "com.sisal.transaction.server.model.rest",
         "com.sisal.transaction.server.repository",
         "com.sisal.transaction.server.exception",
+        "com.sisal.transaction.server.util",
         "com.sisal.transaction.server.config"})
 @EntityScan("com.sisal.transaction.server.model.db")
 @EnableJpaRepositories("com.sisal.transaction.server.repository")
