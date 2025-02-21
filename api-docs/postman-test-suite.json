@@ -1,0 +1,59 @@
+{
+  "info": {
+    "name": "Transaction API Tests",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Create Transaction - Success",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"accountId\": \"ACC123\",\n    \"transactionType\": \"DEPOSIT\",\n    \"amount\": 1000.00\n}"
+        },
+        "url": "http://localhost:8080/api/transactions"
+      }
+    },
+    {
+      "name": "Create Transaction - Invalid Amount",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"accountId\": \"ACC123\",\n    \"transactionType\": \"DEPOSIT\",\n    \"amount\": 15000.00\n}"
+        },
+        "url": "http://localhost:8080/api/transactions"
+      }
+    },
+    {
+      "name": "Create Transaction - Invalid Type",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"accountId\": \"ACC123\",\n    \"transactionType\": \"INVALID_TYPE\",\n    \"amount\": 1000.00\n}"
+        },
+        "url": "http://localhost:8080/api/transactions"
+      }
+    }
+  ]
+}
