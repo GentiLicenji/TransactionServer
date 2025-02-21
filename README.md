@@ -78,8 +78,20 @@ When deciding database solutions, there are a few factors that I take into accou
   * Typically used for prototyping, small-scale applications, or embedded scenarios.
 
 ### DB final decision
-I will be selecting Microsoft SQL server due to the familiarity with the tool and the requirements presented.
-
+I will be using a Microsoft SQL database for main functionality due to the familiarity with the tool and the requirements presented.
+<br/> I will be using an H2 database for integration and unit testing due to ease of use.
+<br/> Below is the project setup for the databases used:
+```
+src/
+├── main/
+│   ├── java/
+│   └── resources/
+│       └── application.properties  (SQL Server config)
+└── test/
+    ├── java/
+    └── resources/
+        └── application-test.properties  (H2 config)
+```
 ### DB Implementation ideas
 Based on the requirement given, we can combine Spring Data JPA (or Hibernate) with transaction management to ensure each of the following is enforced:
 * Transaction count limit (check within a one-minute window).
@@ -88,6 +100,11 @@ Based on the requirement given, we can combine Spring Data JPA (or Hibernate) wi
 * Avoid race conditions by locking account row while checking balance or transaction count.
 
 ## Third-party library usage.
+
+### MapStruct vs Lombok vs Fluid API builders
+<br/> I would try to avoid lombok because annotation processing needs to be enabled in certain IDEs and does not improve readability by using the classic setter getters when called.
+<br/> I would opt out for the Fluid api setters/getters using pure java code. It is also the common choice when generating java models in Swagger/OpenAPI.
+<br/> I would use mapstruct for complex model mappings that require a lot of code manipulation as it simplifies the whole process and saves time.
 
 ### Spring boot versioning decision
 <br/> Due to the project requirement to use java 8 or above, 
@@ -143,7 +160,6 @@ X-API-Key: kjasdhfjashdf
 X-Timestamp:1697040568000
 X-HMAC-Signature: kjashdfjkhasdfjhkjlasdfkjasdf
 Content-Type:application/json
-
 
 ## Contributing
 This is a product of © Sisal.
