@@ -35,14 +35,44 @@ All api changes and definitions are captured through [OpenAPI Specification (OAS
 <br/>For this project, I'm leveraging my own private, customized solution I developed based on Swagger Codegen to ensure robust integration and functionality.
 <br/>This will ensure fast and easy API updates to the codebase straight from the spec changes.
 
-## Explanation of design decisions
-
-[//]: # (TODO: Add custom filter for logging/exception handling/validation)
+## Design Decisions and Best Practices
 ### Architecture Overview
 Good design patterns that are followed:
 * Model View Controller pattern (Provides intuitive method based annotation to define a url mapping)
 * Dependency Injection pattern. (Promotes decoupling with singletons and bean auto-wiring )
 * Front Controller design pattern (Provides centralized logging/authentication/validation/exception-handling)
+
+### Exception Handling and Validation
+I am a firm believer in pushing error handling and validation on the outside boundaries of the application.
+<br/> For this reason I do not apply null checks, and try catch blocks within the application logic layers.
+<br/> Of course, there are exceptions to be made on exception handling. Pun intended. 😄
+<br/> I let validation be applied by the swagger spec itself through jackson annotation.
+<br/> Some rare business cases might call
+for creating a custom validator for complex business rules applied on the spring filter chain layer.
+
+### Object Mapping 
+MapStruct vs Lombok vs Fluid API setters
+<br/> I would try to avoid lombok because annotation processing needs to be enabled in certain IDEs and does not improve readability by using the classic setter getters when called.
+<br/> I would opt out for the Fluid api setters using pure java code. It is also the common choice when generating java models in Swagger/OpenAPI.
+<br/> I would use mapstruct for complex model mappings that require a lot of code manipulation as it simplifies the whole process and saves time.
+
+### Business Logic Implementation Ideas
+
+* Transaction count limit.
+<br/>I implemented this transaction management requirement by using spring data jpa queries. 
+<br/>This is great for a single instance that requires exact transaction count,
+but can be computationally intensive and can cause transaction locking in high concurrency scenarios.
+<br/> Transaction and account locking are necessary to prevent race conditions during updates.
+
+* <br/>The Redis Cluster Cache approach is the best solution for rate limiting in because:
+- It's more accurate in a distributed environment
+- It automatically handles the sliding window
+- It's more efficient than database queries
+- It automatically cleans up after the minute expires
+
+* Maximum transaction amount (Validation is applied )
+* Minimum account balance
+* Avoid race conditions by locking account row while checking balance or transaction count.
 
 ## Database Choice
 ### Preface
@@ -92,19 +122,13 @@ src/
     └── resources/
         └── application-test.properties  (H2 config)
 ```
-### DB Implementation ideas
-Based on the requirement given, we can combine Spring Data JPA (or Hibernate) with transaction management to ensure each of the following is enforced:
-* Transaction count limit (check within a one-minute window).
-* Maximum transaction amount
-* Minimum account balance
-* Avoid race conditions by locking account row while checking balance or transaction count.
+
+
+
 
 ## Third-party library usage.
 
-### MapStruct vs Lombok vs Fluid API builders
-<br/> I would try to avoid lombok because annotation processing needs to be enabled in certain IDEs and does not improve readability by using the classic setter getters when called.
-<br/> I would opt out for the Fluid api setters/getters using pure java code. It is also the common choice when generating java models in Swagger/OpenAPI.
-<br/> I would use mapstruct for complex model mappings that require a lot of code manipulation as it simplifies the whole process and saves time.
+### MapStruct vs
 
 ### Spring boot versioning decision
 <br/> Due to the project requirement to use java 8 or above, 
