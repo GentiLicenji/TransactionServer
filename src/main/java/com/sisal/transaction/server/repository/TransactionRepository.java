@@ -29,4 +29,10 @@ public interface TransactionRepository extends JpaRepository<TransactionEntity, 
 
     @Query("SELECT SUM(t.amount) FROM TransactionEntity t WHERE t.account.accountId = :accountId AND t.transactionType = :type")
     BigDecimal sumAmountByAccountAndType(@Param("accountId") String accountId, @Param("type") TransactionEntity.TransactionType type);
+
+    @Query("SELECT COUNT(t) FROM TransactionEntity t " +
+            "WHERE t.accountId = :accountId " +
+            "AND t.timestamp >= :cutoffTime")
+    long countRecentTransactions(@Param("accountId") String accountId,
+                                 @Param("cutoffTime") OffsetDateTime cutoffTime);
 }
