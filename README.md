@@ -2,10 +2,10 @@
 
 ## Project overview
 
-
-## Setup instructions (including database setup)
+## Setup instructions
 
 ### DB Setup
+Please see the [DB Setup README](./DBSetup.md) on setup details.
 
 ## Automated API changes - Swagger Codegen
 All api changes and definitions are captured through [OpenAPI Specification (OAS) standard](https://swagger.io/specification/).
@@ -88,6 +88,50 @@ Based on the requirement given, we can combine Spring Data JPA (or Hibernate) wi
 * Avoid race conditions by locking account row while checking balance or transaction count.
 
 ## Third-party library usage.
+
+### Spring boot versioning decision
+<br/> Due to the project requirement to use java 8 or above, 
+<br/> I was constrained to use an older version of Spring Boot (Spring Boot 2.7.x will be supported until August 2024).
+<br/>Despite development and setup being easier with newer spring boot versions by using Spring Initializr I chose to go the harder path.
+Also in my personal experience financial institutions are hard to adapt to newer technological advancement.
+
+### SpringFox vs SpringDoc
+<br/> SpringDoc is the new team, where old members from SpringFox moved to. 
+<br/> There are similar political reasons with what happened with Swagger and OpenAPI standard.
+<br/> Due to the project requirement to use swagger I was constrained to use the old version of swagger 2.0.
+
+<p> Here's some more details on the Timeline & Evolution:
+<br/> (Source:Claude 3.5 Sonnet)
+
+* 2010-2011: Swagger Created
+  - Originally developed by Wordnik
+  - First major API documentation tool
+  - Became very popular in API development
+
+* 2015: SmartBear Acquisition
+  - SmartBear acquired Swagger
+  - Continued development under SmartBear
+
+* 2016: OpenAPI Initiative (OAI)
+  - Swagger Specification was donated to Linux Foundation
+  - Renamed to OpenAPI Specification (OAS)
+  - Became vendor-neutral standard
+
+* Current State:
+  - Swagger = SmartBear's toolset (SwaggerUI, Swagger Editor, etc.)
+  - OpenAPI = The specification standard
+  - OpenAPI 3.0+ = Current specification version
+
+* Use SpringDoc for:
+  - New projects
+  - Spring Boot 2.6+
+  - Need for OpenAPI 3.0
+  - Active maintenance
+
+* Use Springfox only if:
+  - Legacy projects
+  - Specific requirement for Swagger 2.0
+  - Cannot upgrade existing codebase
 
 ## Details on the implementation of the authentication mechanism
 
