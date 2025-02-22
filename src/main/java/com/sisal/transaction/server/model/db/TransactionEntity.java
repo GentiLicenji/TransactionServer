@@ -5,7 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.Type;
+import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
 import javax.validation.constraints.DecimalMax;
@@ -17,7 +17,7 @@ import java.util.UUID;
  * Transaction Entity - Database Model
  */
 @Entity
-@Table(name = "transactions")
+@Table(name = "transactions", schema = "transaction_system")
 @Data
 @Builder
 @NoArgsConstructor
@@ -25,13 +25,17 @@ import java.util.UUID;
 public class TransactionEntity {
 
     @Id
+    @GeneratedValue(generator = "UUID")
+    @GenericGenerator(
+            name = "UUID",
+            strategy = "org.hibernate.id.UUIDGenerator"
+    )
     @Column(name = "transaction_id")
-    @Type(type = "uuid-char")
     private UUID transactionId;
 
     @NotNull
     @Column(name = "account_id", nullable = false)
-    private String accountId;
+    private Long accountId;
 
     @NotNull
     @Enumerated(EnumType.STRING)
@@ -75,13 +79,10 @@ public class TransactionEntity {
     }
 
     /**
-     * Upon transaction creation, it will automatically generate tranId and timeStamp.
+     * Upon transaction creation, it will automatically set timeStamp.
      */
     @PrePersist
     protected void onCreate() {
-        if (transactionId == null) {
-            transactionId = UUID.randomUUID();
-        }
         if (timestamp == null) {
             timestamp = OffsetDateTime.now();
         }
