@@ -14,7 +14,7 @@ import java.time.OffsetDateTime;
  * Account Entity - Database Model
  */
 @Entity
-@Table(name = "accounts")
+@Table(name = "accounts", schema = "transaction_system")
 @Data
 @Builder
 @NoArgsConstructor
@@ -22,8 +22,18 @@ import java.time.OffsetDateTime;
 public class AccountEntity {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "account_id")
-    private String accountId;
+    private Long accountId;
+
+    @Column(name = "account_number", unique = true, nullable = false)
+    private String accountNumber;
+
+    @Column(name = "first_name", nullable = false)
+    private String firstName;
+
+    @Column(name = "last_name", nullable = false)
+    private String lastName;
 
     @NotNull
     @Column(name = "balance", nullable = false)
