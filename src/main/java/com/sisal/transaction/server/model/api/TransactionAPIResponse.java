@@ -11,7 +11,7 @@ public class TransactionAPIResponse {
 
     private UUID transactionId = null;
 
-    private String accountId = null;
+    private String accountNumber = null;
 
     /**
      * The type of transaction.
@@ -97,22 +97,22 @@ public class TransactionAPIResponse {
         this.transactionId = transactionId;
     }
 
-    public TransactionAPIResponse accountId(String accountId) {
-        this.accountId = accountId;
+    public TransactionAPIResponse accountNumber(String accountNumber) {
+        this.accountNumber = accountNumber;
         return this;
     }
 
     /**
      * Source account identifier.
      *
-     * @return accountId
+     * @return accountNumber
      **/
-    public String getAccountId() {
-        return accountId;
+    public String getAccountNumber() {
+        return accountNumber;
     }
 
-    public void setAccountId(String accountId) {
-        this.accountId = accountId;
+    public void setAccountNumber(String accountNumber) {
+        this.accountNumber = accountNumber;
     }
 
     public TransactionAPIResponse transactionType(TransactionTypeEnum transactionType) {
@@ -199,7 +199,7 @@ public class TransactionAPIResponse {
         }
         TransactionAPIResponse transactionAPIResponse = (TransactionAPIResponse) o;
         return Objects.equals(this.transactionId, transactionAPIResponse.transactionId) &&
-                Objects.equals(this.accountId, transactionAPIResponse.accountId) &&
+                Objects.equals(this.accountNumber, transactionAPIResponse.accountNumber) &&
                 Objects.equals(this.transactionType, transactionAPIResponse.transactionType) &&
                 Objects.equals(this.amount, transactionAPIResponse.amount) &&
                 Objects.equals(this.timestamp, transactionAPIResponse.timestamp) &&
@@ -208,7 +208,7 @@ public class TransactionAPIResponse {
 
     @Override
     public int hashCode() {
-        return Objects.hash(transactionId, accountId, transactionType, amount, timestamp, status);
+        return Objects.hash(transactionId, accountNumber, transactionType, amount, timestamp, status);
     }
 
     @Override
@@ -216,7 +216,7 @@ public class TransactionAPIResponse {
 
         return "TransactionResponse {\n" +
                 "    transactionId: " + toIndentedString(transactionId) + "\n" +
-                "    accountId: " + toIndentedString(accountId) + "\n" +
+                "    accountNumber: " + toIndentedString(accountNumber) + "\n" +
                 "    transactionType: " + toIndentedString(transactionType) + "\n" +
                 "    amount: " + toIndentedString(amount) + "\n" +
                 "    timestamp: " + toIndentedString(timestamp) + "\n" +

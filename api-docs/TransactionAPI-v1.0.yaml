@@ -17,6 +17,7 @@ tags:
     externalDocs:
       description: "Find out more about our store"
       url: "http://swagger.io"
+
 # Security Definitions
 securityDefinitions:
   HmacAuth:
@@ -118,11 +119,11 @@ definitions:
   TransactionRequest:
     type: "object"
     required:
-      - accountId
+      - accountNumber
       - transactionType
       - amount
     properties:
-      accountId:
+      accountNumber:
         type: "string"
         description: "Source account identifier."
       transactionType:
@@ -140,14 +141,14 @@ definitions:
     type: "object"
     required:
       - transactionId
-      - accountId
+      - accountNumber
       - status
     properties:
       transactionId:
         type: "string"
         format: "uuid"
         description: "Unique identifier for the transaction."
-      accountId:
+      accountNumber:
         type: "string"
         description: "Source account identifier."
       transactionType:

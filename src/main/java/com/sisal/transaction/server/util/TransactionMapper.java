@@ -11,19 +11,19 @@ import org.mapstruct.Mapping;
 public interface TransactionMapper {
 
     // Request mappings
-    @Mapping(source = "accountId", target = "accountId")
+    @Mapping(source = "accountNumber", target = "accountNumber")
     @Mapping(source = "transactionType", target = "transactionType")
     @Mapping(source = "amount", target = "amount")
     TransactionAPIRequest fromRestToAPIRequest(TransactionRequest restRequest);
 
-    @Mapping(source = "accountId", target = "accountId")
+    @Mapping(source = "accountNumber", target = "accountNumber")
     @Mapping(source = "transactionType", target = "transactionType")
     @Mapping(source = "amount", target = "amount")
     TransactionRequest fromAPIToRestRequest(TransactionAPIRequest apiRequest);
 
     // Response mappings
     @Mapping(source = "transactionId", target = "transactionId")
-    @Mapping(source = "accountId", target = "accountId")
+    @Mapping(source = "accountNumber", target = "accountNumber")
     @Mapping(source = "transactionType", target = "transactionType")
     @Mapping(source = "amount", target = "amount")
     @Mapping(source = "timestamp", target = "timestamp")
@@ -31,7 +31,7 @@ public interface TransactionMapper {
     TransactionResponse fromAPIToRestResponse(TransactionAPIResponse apiResponse);
 
     @Mapping(source = "transactionId", target = "transactionId")
-    @Mapping(source = "accountId", target = "accountId")
+    @Mapping(source = "accountNumber", target = "accountNumber")
     @Mapping(source = "transactionType", target = "transactionType")
     @Mapping(source = "amount", target = "amount")
     @Mapping(source = "timestamp", target = "timestamp")

@@ -24,8 +24,8 @@ public class TransactionResponse {
     @JsonProperty("transactionId")
     private UUID transactionId = null;
 
-    @JsonProperty("accountId")
-    private String accountId = null;
+    @JsonProperty("accountNumber")
+    private String accountNumber = null;
 
     /**
      * The type of transaction.
@@ -124,26 +124,26 @@ public class TransactionResponse {
         this.transactionId = transactionId;
     }
 
-    public TransactionResponse accountId(String accountId) {
-        this.accountId = accountId;
+    public TransactionResponse accountNumber(String accountNumber) {
+        this.accountNumber = accountNumber;
         return this;
     }
 
     /**
      * Source account identifier.
      *
-     * @return accountId
+     * @return accountNumber
      **/
     @ApiModelProperty(required = true, value = "Source account identifier.")
     @NotNull
 
 
-    public String getAccountId() {
-        return accountId;
+    public String getAccountNumber() {
+        return accountNumber;
     }
 
-    public void setAccountId(String accountId) {
-        this.accountId = accountId;
+    public void setAccountNumber(String accountNumber) {
+        this.accountNumber = accountNumber;
     }
 
     public TransactionResponse transactionType(TransactionTypeEnum transactionType) {
@@ -244,7 +244,7 @@ public class TransactionResponse {
         }
         TransactionResponse transactionResponse = (TransactionResponse) o;
         return Objects.equals(this.transactionId, transactionResponse.transactionId) &&
-                Objects.equals(this.accountId, transactionResponse.accountId) &&
+                Objects.equals(this.accountNumber, transactionResponse.accountNumber) &&
                 Objects.equals(this.transactionType, transactionResponse.transactionType) &&
                 Objects.equals(this.amount, transactionResponse.amount) &&
                 Objects.equals(this.timestamp, transactionResponse.timestamp) &&
@@ -253,7 +253,7 @@ public class TransactionResponse {
 
     @Override
     public int hashCode() {
-        return Objects.hash(transactionId, accountId, transactionType, amount, timestamp, status);
+        return Objects.hash(transactionId, accountNumber, transactionType, amount, timestamp, status);
     }
 
     @Override
@@ -262,7 +262,7 @@ public class TransactionResponse {
         sb.append("class TransactionResponse {\n");
 
         sb.append("    transactionId: ").append(toIndentedString(transactionId)).append("\n");
-        sb.append("    accountId: ").append(toIndentedString(accountId)).append("\n");
+        sb.append("    accountNumber: ").append(toIndentedString(accountNumber)).append("\n");
         sb.append("    transactionType: ").append(toIndentedString(transactionType)).append("\n");
         sb.append("    amount: ").append(toIndentedString(amount)).append("\n");
         sb.append("    timestamp: ").append(toIndentedString(timestamp)).append("\n");

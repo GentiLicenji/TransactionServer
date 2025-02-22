@@ -7,7 +7,7 @@ import java.util.Objects;
  */
 public class TransactionAPIRequest {
 
-    private String accountId = null;
+    private String accountNumber = null;
 
     /**
      * The type of transaction.
@@ -44,22 +44,22 @@ public class TransactionAPIRequest {
 
     private Double amount = null;
 
-    public TransactionAPIRequest accountId(String accountId) {
-        this.accountId = accountId;
+    public TransactionAPIRequest accountNumber(String accountNumber) {
+        this.accountNumber = accountNumber;
         return this;
     }
 
     /**
      * Source account identifier.
      *
-     * @return accountId
+     * @return accountNumber
      **/
-    public String getAccountId() {
-        return accountId;
+    public String getaccountNumber() {
+        return accountNumber;
     }
 
-    public void setAccountId(String accountId) {
-        this.accountId = accountId;
+    public void setaccountNumber(String accountNumber) {
+        this.accountNumber = accountNumber;
     }
 
     public TransactionAPIRequest transactionType(TransactionTypeEnum transactionType) {
@@ -109,21 +109,21 @@ public class TransactionAPIRequest {
             return false;
         }
         TransactionAPIRequest transactionAPIRequest = (TransactionAPIRequest) o;
-        return Objects.equals(this.accountId, transactionAPIRequest.accountId) &&
+        return Objects.equals(this.accountNumber, transactionAPIRequest.accountNumber) &&
                 Objects.equals(this.transactionType, transactionAPIRequest.transactionType) &&
                 Objects.equals(this.amount, transactionAPIRequest.amount);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(accountId, transactionType, amount);
+        return Objects.hash(accountNumber, transactionType, amount);
     }
 
     @Override
     public String toString() {
 
         return "TransactionRequest {\n" +
-                "    accountId: " + toIndentedString(accountId) + "\n" +
+                "    accountNumber: " + toIndentedString(accountNumber) + "\n" +
                 "    transactionType: " + toIndentedString(transactionType) + "\n" +
                 "    amount: " + toIndentedString(amount) + "\n" +
                 "}";

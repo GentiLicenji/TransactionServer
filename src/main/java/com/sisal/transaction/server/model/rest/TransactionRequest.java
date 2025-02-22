@@ -17,8 +17,8 @@ import java.util.Objects;
 @javax.annotation.Generated(value = "com.glic.GentiSpringCodegen", date = "2025-02-20T13:46:34.637+01:00")
 
 public class TransactionRequest {
-    @JsonProperty("accountId")
-    private String accountId = null;
+    @JsonProperty("accountNumber")
+    private String accountNumber = null;
 
     /**
      * The type of transaction.
@@ -57,26 +57,26 @@ public class TransactionRequest {
     @JsonProperty("amount")
     private Double amount = null;
 
-    public TransactionRequest accountId(String accountId) {
-        this.accountId = accountId;
+    public TransactionRequest accountNumber(String accountNumber) {
+        this.accountNumber = accountNumber;
         return this;
     }
 
     /**
      * Source account identifier.
      *
-     * @return accountId
+     * @return accountNumber
      **/
     @ApiModelProperty(required = true, value = "Source account identifier.")
     @NotNull
 
 
-    public String getAccountId() {
-        return accountId;
+    public String getAccountNumber() {
+        return accountNumber;
     }
 
-    public void setAccountId(String accountId) {
-        this.accountId = accountId;
+    public void setAccountNumber(String accountNumber) {
+        this.accountNumber = accountNumber;
     }
 
     public TransactionRequest transactionType(TransactionTypeEnum transactionType) {
@@ -134,14 +134,14 @@ public class TransactionRequest {
             return false;
         }
         TransactionRequest transactionRequest = (TransactionRequest) o;
-        return Objects.equals(this.accountId, transactionRequest.accountId) &&
+        return Objects.equals(this.accountNumber, transactionRequest.accountNumber) &&
                 Objects.equals(this.transactionType, transactionRequest.transactionType) &&
                 Objects.equals(this.amount, transactionRequest.amount);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(accountId, transactionType, amount);
+        return Objects.hash(accountNumber, transactionType, amount);
     }
 
     @Override
@@ -149,7 +149,7 @@ public class TransactionRequest {
         StringBuilder sb = new StringBuilder();
         sb.append("class TransactionRequest {\n");
 
-        sb.append("    accountId: ").append(toIndentedString(accountId)).append("\n");
+        sb.append("    accountNumber: ").append(toIndentedString(accountNumber)).append("\n");
         sb.append("    transactionType: ").append(toIndentedString(transactionType)).append("\n");
         sb.append("    amount: ").append(toIndentedString(amount)).append("\n");
         sb.append("}");

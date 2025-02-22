@@ -59,7 +59,7 @@ public class TransactionAPIControllerTest {
     public void whenCreateValidTransaction_thenReturnSuccess() throws Exception {
         // Arrange
         TransactionRequest request = new TransactionRequest()
-                .accountId("ACC123")
+                .accountNumber("ACC123")
                 .transactionType(TransactionRequest.TransactionTypeEnum.DEPOSIT)
                 .amount(1000.0);
 
@@ -70,7 +70,7 @@ public class TransactionAPIControllerTest {
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.transactionId").exists())
                 .andExpect(jsonPath("$.status").value("COMPLETED"))
-                .andExpect(jsonPath("$.accountId").value("ACC123"))
+                .andExpect(jsonPath("$.accountNumber").value("ACC123"))
                 .andExpect(jsonPath("$.amount").value(1000.0));
     }
 
@@ -78,7 +78,7 @@ public class TransactionAPIControllerTest {
     public void whenCreateTransactionWithInvalidAmount_thenReturnBadRequest() throws Exception {
         // Arrange
         TransactionRequest request = new TransactionRequest()
-                .accountId("ACC123")
+                .accountNumber("ACC123")
                 .transactionType(TransactionRequest.TransactionTypeEnum.DEPOSIT)
                 .amount(11000.0);// Exceeds maximum
 
@@ -94,7 +94,7 @@ public class TransactionAPIControllerTest {
     @Test
     void whenAccountNotFound_thenReturnCorrectErrorResponse() throws Exception {
         TransactionRequest request = new TransactionRequest()
-                .accountId("NONEXISTENT")
+                .accountNumber("NONEXISTENT")
                 .amount(10d)
                 .transactionType(TransactionRequest.TransactionTypeEnum.DEPOSIT);
 
@@ -126,7 +126,7 @@ public class TransactionAPIControllerTest {
         for (int i = 0; i < 6; i++) {
 
             TransactionRequest request = new TransactionRequest()
-                    .accountId(account.getAccountId())
+                    .accountNumber(account.getAccountNumber())
                     .amount(10.0)
                     .transactionType(TransactionRequest.TransactionTypeEnum.DEPOSIT);
 
@@ -157,7 +157,7 @@ public class TransactionAPIControllerTest {
         AccountEntity account = createTestAccount();
 
         TransactionRequest request = new TransactionRequest()
-                .accountId(account.getAccountId())
+                .accountNumber(account.getAccountNumber())
                 .amount(200.0)
                 .transactionType(TransactionRequest.TransactionTypeEnum.WITHDRAWAL);
 
@@ -186,7 +186,7 @@ public class TransactionAPIControllerTest {
         AccountEntity account = createTestAccount();
 
         TransactionRequest request = new TransactionRequest()
-                .accountId(account.getAccountId())
+                .accountNumber(account.getAccountNumber())
                 .amount(200.0)
                 .transactionType(TransactionRequest.TransactionTypeEnum.WITHDRAWAL);
 
@@ -215,7 +215,7 @@ public class TransactionAPIControllerTest {
         AccountEntity account = createTestAccount();
 
         TransactionRequest request = new TransactionRequest()
-                .accountId(account.getAccountId())
+                .accountNumber(account.getAccountNumber())
                 .amount(200.0)
                 .transactionType(TransactionRequest.TransactionTypeEnum.WITHDRAWAL);
 
@@ -246,6 +246,7 @@ public class TransactionAPIControllerTest {
     private AccountEntity createTestAccount() {
 
         return accountAPIService.createAccount(
+                3453454358l,
                 "ACC" + Math.random(),
                 100.0
         );

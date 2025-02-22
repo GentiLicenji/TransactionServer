@@ -16,7 +16,7 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\n    \"accountId\": \"ACC123\",\n    \"transactionType\": \"DEPOSIT\",\n    \"amount\": 1000.00\n}"
+          "raw": "{\n    \"accountNumber\": \"ACC123\",\n    \"transactionType\": \"DEPOSIT\",\n    \"amount\": 1000.00\n}"
         },
         "url": "http://localhost:8080/api/transactions"
       }
@@ -33,7 +33,7 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\n    \"accountId\": \"ACC123\",\n    \"transactionType\": \"DEPOSIT\",\n    \"amount\": 15000.00\n}"
+          "raw": "{\n    \"accountNumber\": \"ACC123\",\n    \"transactionType\": \"DEPOSIT\",\n    \"amount\": 15000.00\n}"
         },
         "url": "http://localhost:8080/api/transactions"
       }
@@ -50,7 +50,7 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\n    \"accountId\": \"ACC123\",\n    \"transactionType\": \"INVALID_TYPE\",\n    \"amount\": 1000.00\n}"
+          "raw": "{\n    \"accountNumber\": \"ACC123\",\n    \"transactionType\": \"INVALID_TYPE\",\n    \"amount\": 1000.00\n}"
         },
         "url": "http://localhost:8080/api/transactions"
       }
