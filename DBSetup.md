@@ -30,7 +30,7 @@ This guide details the setup of Microsoft SQL Server 2022 Developer Edition for 
 4. Set TCP Port to 1433
 
 ### 3.0 Database Setup
-Execute in SQL Server Management Studio:
+Execute in SQL cmd line or SQL Server Management Studio:
 
 ```sql
 CREATE DATABASE transactions_db;
@@ -55,99 +55,181 @@ GO
 ### 3.1 Tables Setup
 Execute the following SQL commands to generate the required tables based on the schemas below:
 ```sql
-USE transactions_db;
+-- Create Schema (optional but recommended)
+CREATE SCHEMA transaction_system;
 GO
 
--- Create accounts table first (since it's referenced by transactions)
-CREATE TABLE accounts (
-    account_id VARCHAR(255) PRIMARY KEY,
-    balance DECIMAL(10,2) NOT NULL,
-    created_at DATETIMEOFFSET NOT NULL DEFAULT SYSDATETIMEOFFSET(),
-    version BIGINT NOT NULL DEFAULT 0,
-    last_modified_at DATETIMEOFFSET NULL,
+-- Account Table
+CREATE TABLE transaction_system.accounts (
+                                            account_id BIGINT IDENTITY(1,1) PRIMARY KEY,
+                                            account_number VARCHAR(255) NOT NULL,
+                                            first_name NVARCHAR(255) NOT NULL,
+                                            last_name NVARCHAR(255) NOT NULL,
+                                            balance DECIMAL(19,2) NOT NULL,
+                                            created_at DATETIMEOFFSET NOT NULL DEFAULT SYSUTCDATETIME(),
+                                            version BIGINT DEFAULT 0,
+                                            last_modified_at DATETIMEOFFSET NULL,
+                                            CONSTRAINT UQ_Account_Number UNIQUE (account_number),
+                                            CONSTRAINT CHK_Account_Balance CHECK (balance >= 0)
 );
 GO
 
--- Create ENUM tables for TransactionType and TransactionStatus
-CREATE TABLE TransactionType (
-    type_name VARCHAR(50) PRIMARY KEY
-);
+-- Transaction Table
+CREATE TABLE transaction_system.transactions (
+                                                transaction_id UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWSEQUENTIALID(),
+                                                account_id BIGINT NOT NULL,
+                                                transaction_type VARCHAR(50) NOT NULL,
+                                                amount DECIMAL(19,2) NOT NULL,
+   [timestamp] DATETIMEOFFSET NOT NULL DEFAULT SYSUTCDATETIME(),
+   status VARCHAR(50) NOT NULL,
+   version BIGINT DEFAULT 0,
+   CONSTRAINT FK_Transaction_Account FOREIGN KEY (account_id)
+      REFERENCES transaction_system.accounts(account_id)
+      ON DELETE NO ACTION
+      ON UPDATE NO ACTION,
+   CONSTRAINT CHK_Transaction_Amount CHECK (amount <= 10000.00),
+   CONSTRAINT CHK_Transaction_Type CHECK (transaction_type IN ('DEPOSIT', 'WITHDRAWAL')),
+   CONSTRAINT CHK_Transaction_Status CHECK (status IN ('COMPLETED', 'FAILED'))
+   );
 GO
 
-CREATE TABLE TransactionStatus (
-    status_name VARCHAR(50) PRIMARY KEY
-);
-GO
+-- Indexes
+CREATE NONCLUSTERED INDEX IX_Account_Number 
+ON transaction_system.accounts(account_number);
 
--- Insert enum values
-INSERT INTO TransactionType (type_name) VALUES ('DEPOSIT'), ('WITHDRAWAL');
-GO
+CREATE NONCLUSTERED INDEX IX_Transaction_AccountId 
+ON transaction_system.transactions(account_id)
+INCLUDE (transaction_type, amount, [timestamp], status);
 
-INSERT INTO TransactionStatus (status_name) VALUES ('COMPLETED'), ('FAILED');
-GO
+CREATE NONCLUSTERED INDEX IX_Transaction_Timestamp 
+ON transaction_system.transactions([timestamp]);
 
--- Create transactions table
-CREATE TABLE transactions (
-    transaction_id CHAR(36) PRIMARY KEY,  -- For UUID
-    account_id VARCHAR(255) NOT NULL,
-    transaction_type VARCHAR(50) NOT NULL,
-    amount DECIMAL(10,2) NOT NULL,
-    timestamp DATETIMEOFFSET NOT NULL DEFAULT SYSDATETIMEOFFSET(),
-    status VARCHAR(50) NOT NULL,
-    version BIGINT NOT NULL DEFAULT 0,
-    
-    CONSTRAINT FK_transactions_account 
-        FOREIGN KEY (account_id) REFERENCES accounts(account_id),
-    CONSTRAINT FK_transactions_type 
-        FOREIGN KEY (transaction_type) REFERENCES TransactionType(type_name),
-    CONSTRAINT FK_transactions_status 
-        FOREIGN KEY (status) REFERENCES TransactionStatus(status_name),
-    CONSTRAINT CHK_amount 
-        CHECK (amount <= 10000.00)
-);
-GO
-
--- Create indexes
-CREATE INDEX IX_transactions_account_id ON transactions(account_id);
-CREATE INDEX IX_accounts_created_at ON accounts(created_at);
-CREATE INDEX IX_accounts_last_modified_at ON accounts(last_modified_at);
-GO
-
--- Test data insertion example:
--- Insert an account
-INSERT INTO accounts (account_id, balance, created_at, last_modified_at) 
-VALUES ('ACC123', 1000.00, SYSDATETIMEOFFSET(), SYSDATETIMEOFFSET());
-GO
-
--- Insert a transaction
-INSERT INTO transactions (
-    transaction_id, 
-    account_id, 
-    transaction_type, 
-    amount, 
-    timestamp, 
-    status
-) 
-VALUES (
-    NEWID(), 
-    'ACC123', 
-    'DEPOSIT', 
-    500.00, 
-    SYSDATETIMEOFFSET(), 
-    'COMPLETED'
-);
-GO
+CREATE NONCLUSTERED INDEX IX_Transaction_Type_Status 
+ON transaction_system.transactions(transaction_type, status)
+INCLUDE (account_id, amount, [timestamp]);
 
 -- Verify tables creation:
 SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE';
-GO
+
 ```
+
+Optimize common queries:
+```sql
+-- For countRecentTransactions
+CREATE NONCLUSTERED INDEX IX_Transaction_AccountId_Timestamp
+ON transaction_system.transactions(account_id, [timestamp])
+INCLUDE (transaction_type, status);
+
+-- For findByAccountNumber
+CREATE NONCLUSTERED INDEX IX_Account_Number
+ON transaction_system.accounts(account_number)
+INCLUDE (first_name, last_name, balance, created_at);
+```
+Create filtered indexes for common patterns:
+```sql
+-- Query recent transactions (last 30 days)
+CREATE NONCLUSTERED INDEX IX_Transaction_Recent
+ON transaction_system.transactions(account_id, [timestamp])
+INCLUDE (transaction_type, status)
+WHERE [timestamp] >= DATEADD(DAY, -30, SYSUTCDATETIME());
+
+-- Query completed transactions
+CREATE NONCLUSTERED INDEX IX_Transaction_Completed
+ON transaction_system.transactions(account_id, [timestamp])
+INCLUDE (transaction_type)
+WHERE status = 'COMPLETED';
+```
+Insert an account record if you want to test the server using Postman Test Suite:
+```sql
+INSERT INTO transaction_system.accounts (account_number, first_name, last_name, balance, created_at, version)
+VALUES ('ACC123', 'John', 'Doe', 1000.00, SYSUTCDATETIME(), 0);
+```
+### 3.2 Advanced Implementation
+I could have implemented the transaction creation business logic within the database using stored procedures. 
+<br/>I chose to do it within the application's service layer since there were no strict performance requirements.
+<br/>Here's a sample of that implementation below:
+```sql
+CREATE OR ALTER PROCEDURE transaction_system.sp_CreateTransaction
+    @AccountNumber VARCHAR(255),
+    @Amount DECIMAL(19,2),
+    @TransactionType VARCHAR(50),
+    @TransactionId UNIQUEIDENTIFIER OUTPUT  -- This is an output parameter
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SET XACT_ABORT ON;  -- Ensures transaction safety
+    
+    BEGIN TRY
+        BEGIN TRANSACTION;
+            
+        -- First check if account exists and get its ID
+        DECLARE @AccountId BIGINT;
+        SELECT @AccountId = account_id 
+        FROM transaction_system.accounts 
+        WHERE account_number = @AccountNumber;
+        
+        IF @AccountId IS NULL
+            THROW 50000, 'Account not found', 1;
+            
+        -- Create new transaction
+        SET @TransactionId = NEWID();
+        
+        INSERT INTO transaction_system.transactions (
+            transaction_id,
+            account_id,
+            amount,
+            transaction_type,
+            status
+        ) VALUES (
+            @TransactionId,
+            @AccountId,
+            @Amount,
+            @TransactionType,
+            'COMPLETED'
+        );
+        
+        -- Update account balance
+        UPDATE transaction_system.accounts
+        SET balance = CASE 
+            WHEN @TransactionType = 'DEPOSIT' THEN balance + @Amount
+            WHEN @TransactionType = 'WITHDRAWAL' THEN balance - @Amount
+        END
+        WHERE account_id = @AccountId;
+        
+        COMMIT TRANSACTION;
+    END TRY
+    BEGIN CATCH
+        IF @@TRANCOUNT > 0
+            ROLLBACK TRANSACTION;
+            
+        THROW;  -- Re-throw the error
+    END CATCH;
+END;
+
+-- How to use it in MSSQL:
+DECLARE @NewTransactionId UNIQUEIDENTIFIER;
+EXEC transaction_system.sp_CreateTransaction 
+    @AccountNumber = '12345',
+    @Amount = 100.00,
+    @TransactionType = 'DEPOSIT',
+    @TransactionId = @NewTransactionId OUTPUT;
+```
+In my spring boot app tran repository, I would have called:
+```java
+    @Procedure(name = "sp_CreateTransaction")
+UUID createTransaction(
+                @Param("AccountNumber") String accountNumber,
+                @Param("Amount") Double amount,
+                @Param("TransactionType") String transactionType
+        );
+```
+
 ### 4. Current spring boot props used in this demo server
 ```properties
 spring.datasource.driver-class-name=com.microsoft.sqlserver.jdbc.SQLServerDriver
 spring.datasource.url=jdbc:sqlserver://localhost:1433;databaseName=transactions_db;encrypt=true;trustServerCertificate=true
 spring.datasource.username=sa
-spring.datasource.password=1
+spring.datasource.password=Pass@123
 ```
 
 ## Security Notes
@@ -176,14 +258,14 @@ spring.datasource.password=1
     - Server: localhost
     - Authentication: SQL Server Authentication
     - Username: sa
-    - Password: 1
+    - Password: Pass@123
 3. If above fails, attempt logging in with
    - Server: localhost
    - Authentication: Windows Authentication
    - Encryption: Optional
 4. Make sure to enable windows and SQL server auth mode like shown below:
 ![SQl login failures from spring boot server](/src/main/resources/readme/sql-login.png)
-5. Restart the SQL server instance on Windows services or by restarting your pc.
+5. Restart the SQL server instance on Windows services or by restarting your PC.
 
 ## Additional Resources
 - [SQL Server Documentation](https://docs.microsoft.com/en-us/sql/sql-server/)
