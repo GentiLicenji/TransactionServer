@@ -1,17 +1,20 @@
 package com.sisal.transaction.server.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sisal.transaction.server.model.rest.ErrorResponse;
 import com.sisal.transaction.server.model.db.AccountEntity;
+import com.sisal.transaction.server.model.rest.ErrorResponse;
 import com.sisal.transaction.server.model.rest.TransactionRequest;
+import com.sisal.transaction.server.model.rest.TransactionResponse;
 import com.sisal.transaction.server.service.AccountApiService;
 import com.sisal.transaction.server.util.ErrorCode;
 import com.sisal.transaction.server.util.TestConfig;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
@@ -23,7 +26,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
- * Test Suite will test the Transaction API controller by ignoring the filter chain.
+ * Test Suite will test the Transaction API controller.
  */
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -41,29 +44,67 @@ public class TransactionAPIControllerTest {
 
     @Autowired
     private AccountApiService accountAPIService;
+    private AccountEntity randomAccount;
 
+    @BeforeEach
+    void setUp() {
+        randomAccount = createTestAccount(100.0);
+    }
 
+    /**
+     * ******************
+     * Positive Scenarios
+     * ******************
+     */
     @Test
-    public void whenCreateValidTransaction_thenReturnSuccess() throws Exception {
-        // Arrange
+    public void whenCreateValidTransaction_thenReturnCorrectResponse() throws Exception {
+
         TransactionRequest request = new TransactionRequest()
-                .accountNumber("GB29NWBK60161331926819")
+                .accountNumber(randomAccount.getAccountNumber())
                 .transactionType(TransactionRequest.TransactionTypeEnum.DEPOSIT)
                 .amount(1000.0);
 
-        // Act & Assert
+        // Perform REST call & Assert
         mockMvc.perform(post(PATH)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.transactionId").exists())
-                .andExpect(jsonPath("$.status").value("COMPLETED"))
-                .andExpect(jsonPath("$.accountNumber").value("GB29NWBK60161331926819"))
-                .andExpect(jsonPath("$.amount").value(1000.0));
+                .andExpect(jsonPath("$.amount").value(1000.0))
+                .andExpect(jsonPath("$.status").value(TransactionResponse.StatusEnum.COMPLETED.toString()))
+                .andExpect(jsonPath("$.accountNumber").value(randomAccount.getAccountNumber()))
+                .andExpect(jsonPath("$.transactionType").value(request.getTransactionType().toString()))
+                .andExpect(jsonPath("$.timestamp").exists())
+                .andExpect(jsonPath("$.transactionId").exists());
     }
 
     @Test
-    public void whenCreateTransactionWithInvalidAmount_thenReturnBadRequest() throws Exception {
+    void whenNewAccountBalanceGoesBelow100_thenReturnCorrectResponse() throws Exception {
+
+        TransactionRequest request = new TransactionRequest()
+                .accountNumber(randomAccount.getAccountNumber())
+                .amount(60.0)
+                .transactionType(TransactionRequest.TransactionTypeEnum.WITHDRAWAL);
+
+        // Perform REST call & Assert
+        mockMvc.perform(post(PATH)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.amount").value(60.0))
+                .andExpect(jsonPath("$.status").value(TransactionResponse.StatusEnum.COMPLETED.toString()))
+                .andExpect(jsonPath("$.accountNumber").value(randomAccount.getAccountNumber()))
+                .andExpect(jsonPath("$.transactionType").value(request.getTransactionType().toString()))
+                .andExpect(jsonPath("$.timestamp").exists())
+                .andExpect(jsonPath("$.transactionId").exists());
+    }
+
+    /**
+     * ******************
+     * Negative Scenarios
+     * ******************
+     */
+    @Test
+    public void whenCreateTransactionWithInvalidAmount_thenThrowValidErrorResponse() throws Exception {
 
         TransactionRequest request = new TransactionRequest()
                 // no need for a real account
@@ -72,16 +113,28 @@ public class TransactionAPIControllerTest {
                 .transactionType(TransactionRequest.TransactionTypeEnum.DEPOSIT)
                 .amount(11000.0);// Exceeds maximum
 
-        mockMvc.perform(post(PATH)
+        MvcResult result = mockMvc.perform(post(PATH)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.errorCode").exists())
-                .andExpect(jsonPath("$.errorMessage").exists());
+                .andReturn();
+
+        ErrorResponse errorResponse = objectMapper.readValue(
+                result.getResponse().getContentAsString(),
+                ErrorResponse.class
+        );
+
+        assertAll(
+                () -> assertEquals(HttpStatus.BAD_REQUEST.toString(), errorResponse.getHttpErrorCode()),
+                () -> assertEquals(ErrorCode.INVALID_REQUEST.getCode(),
+                        errorResponse.getErrorCode()),
+                () -> assertNotNull(errorResponse.getErrorMessage())
+        );
     }
 
     @Test
-    void whenAccountNotFound_thenThrowCorrectErrorResponse() throws Exception {
+    void whenAccountNotFound_thenThrowValidErrorResponse() throws Exception {
+
         TransactionRequest request = new TransactionRequest()
                 .accountNumber("NONEXISTENT")
                 .amount(10d)
@@ -99,7 +152,7 @@ public class TransactionAPIControllerTest {
         );
 
         assertAll(
-                () -> assertEquals("404", errorResponse.getHttpErrorCode()),
+                () -> assertEquals(HttpStatus.NOT_FOUND.toString(), errorResponse.getHttpErrorCode()),
                 () -> assertEquals(ErrorCode.ACCOUNT_NOT_FOUND.getCode(),
                         errorResponse.getErrorCode()),
                 () -> assertNotNull(errorResponse.getErrorMessage())
@@ -107,15 +160,13 @@ public class TransactionAPIControllerTest {
     }
 
     @Test
-    void whenRateLimitExceeded_thenReturnCorrectErrorResponse() throws Exception {
-        // First create an account
-        AccountEntity account = createTestAccount();
+    void whenRateLimitExceeded_thenThrowValidErrorResponse() throws Exception {
 
         // Perform 6 transactions rapidly
         for (int i = 0; i < 6; i++) {
 
             TransactionRequest request = new TransactionRequest()
-                    .accountNumber(account.getAccountNumber())
+                    .accountNumber(randomAccount.getAccountNumber())
                     .amount(10.0)
                     .transactionType(TransactionRequest.TransactionTypeEnum.DEPOSIT);
 
@@ -131,7 +182,7 @@ public class TransactionAPIControllerTest {
                 );
 
                 assertAll(
-                        () -> assertEquals("429", errorResponse.getHttpErrorCode()),
+                        () -> assertEquals(HttpStatus.TOO_MANY_REQUESTS.toString(), errorResponse.getHttpErrorCode()),
                         () -> assertEquals(ErrorCode.RATE_LIMIT_EXCEEDED.getCode(),
                                 errorResponse.getErrorCode()),
                         () -> assertNotNull(errorResponse.getErrorMessage())
@@ -141,19 +192,18 @@ public class TransactionAPIControllerTest {
     }
 
     @Test
-    void whenInsufficientBalance_thenThrowCorrectErrorResponse() throws Exception {
+    void whenInsufficientBalance_thenThrowValidErrorResponse() throws Exception {
 
-        AccountEntity account = createTestAccount();
-
+        //The Original balance is $100.0
         TransactionRequest request = new TransactionRequest()
-                .accountNumber(account.getAccountNumber())
+                .accountNumber(randomAccount.getAccountNumber())
                 .amount(200.0)
                 .transactionType(TransactionRequest.TransactionTypeEnum.WITHDRAWAL);
 
         MvcResult result = mockMvc.perform(post(PATH)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isBadRequest())
+                .andExpect(status().isConflict())
                 .andReturn();
 
         ErrorResponse errorResponse = objectMapper.readValue(
@@ -162,7 +212,7 @@ public class TransactionAPIControllerTest {
         );
 
         assertAll(
-                () -> assertEquals("400", errorResponse.getHttpErrorCode()),
+                () -> assertEquals(HttpStatus.CONFLICT.toString(), errorResponse.getHttpErrorCode()),
                 () -> assertEquals(ErrorCode.INSUFFICIENT_BALANCE.getCode(),
                         errorResponse.getErrorCode()),
                 () -> assertNotNull(errorResponse.getErrorMessage())
@@ -170,42 +220,11 @@ public class TransactionAPIControllerTest {
     }
 
     @Test
-    void whenNewAccountHasBalanceBelow100_thenReturnCorrectResponse() throws Exception {
-        // Create an account with minimum balance
-        AccountEntity account = createTestAccount();
+    void whenOldAccountHasBalanceBelow100_thenThrowValidErrorResponse() throws Exception {
 
         TransactionRequest request = new TransactionRequest()
-                .accountNumber(account.getAccountNumber())
-                .amount(200.0)
-                .transactionType(TransactionRequest.TransactionTypeEnum.WITHDRAWAL);
-
-        MvcResult result = mockMvc.perform(post(PATH)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isBadRequest())
-                .andReturn();
-
-        ErrorResponse errorResponse = objectMapper.readValue(
-                result.getResponse().getContentAsString(),
-                ErrorResponse.class
-        );
-
-        assertAll(
-                () -> assertEquals("400", errorResponse.getHttpErrorCode()),
-                () -> assertEquals(ErrorCode.INSUFFICIENT_BALANCE.getCode(),
-                        errorResponse.getErrorCode()),
-                () -> assertNotNull(errorResponse.getErrorMessage())
-        );
-    }
-
-    @Test
-    void whenOldAccountHasBalanceBelow100_thenThrowErrorResponse() throws Exception {
-        // Create an account with minimum balance
-        AccountEntity account = createTestAccount();
-
-        TransactionRequest request = new TransactionRequest()
-                .accountNumber(account.getAccountNumber())
-                .amount(200.0)
+                .accountNumber(randomAccount.getAccountNumber())
+                .amount(50.0)
                 .transactionType(TransactionRequest.TransactionTypeEnum.WITHDRAWAL);
 
         MvcResult result = mockMvc.perform(post(PATH)
@@ -228,18 +247,18 @@ public class TransactionAPIControllerTest {
     }
 
     /**
-     * Helper method to create a test account with minimum balance.
+     * Helper method to create a random test account.
      *
      * @return random bank account
      */
-    private AccountEntity createTestAccount() {
+    private AccountEntity createTestAccount(Double accountBalance) {
 
         return accountAPIService.createAccount(
-                3453454358L,
+                Double.doubleToLongBits(Math.random()),
                 "Bob",
                 "Builder",
-                "ACC" + Math.random(),
-                100.0
+                "GCE" + Math.random(),
+                accountBalance
         );
     }
 
