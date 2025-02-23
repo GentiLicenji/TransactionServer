@@ -1,13 +1,10 @@
 package com.sisal.transaction.server.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sisal.transaction.server.exception.ErrorResponse;
+import com.sisal.transaction.server.model.rest.ErrorResponse;
 import com.sisal.transaction.server.model.db.AccountEntity;
 import com.sisal.transaction.server.model.rest.TransactionRequest;
-import com.sisal.transaction.server.repository.AccountRepository;
-import com.sisal.transaction.server.repository.TransactionRepository;
-import com.sisal.transaction.server.service.AccountAPIService;
-import com.sisal.transaction.server.service.TransactionApiService;
+import com.sisal.transaction.server.service.AccountApiService;
 import com.sisal.transaction.server.util.ErrorCode;
 import com.sisal.transaction.server.util.TestConfig;
 import org.junit.jupiter.api.Test;
@@ -34,7 +31,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ActiveProfiles("test") // Loads application-test.properties
 public class TransactionAPIControllerTest {
 
-    private static final String BASE_URL = "/api/transactions";
+    private static final String PATH = "/api/transactions";
 
     @Autowired
     private MockMvc mockMvc;
@@ -43,47 +40,39 @@ public class TransactionAPIControllerTest {
     private ObjectMapper objectMapper;
 
     @Autowired
-    private AccountAPIService accountAPIService;
-
-    @Autowired
-    private TransactionApiService transactionApiService;
-
-    @Autowired
-    private TransactionRepository transactionRepository;
-
-    @Autowired
-    private AccountRepository accountRepository;
+    private AccountApiService accountAPIService;
 
 
     @Test
     public void whenCreateValidTransaction_thenReturnSuccess() throws Exception {
         // Arrange
         TransactionRequest request = new TransactionRequest()
-                .accountNumber("ACC123")
+                .accountNumber("GB29NWBK60161331926819")
                 .transactionType(TransactionRequest.TransactionTypeEnum.DEPOSIT)
                 .amount(1000.0);
 
         // Act & Assert
-        mockMvc.perform(post(BASE_URL)
+        mockMvc.perform(post(PATH)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.transactionId").exists())
                 .andExpect(jsonPath("$.status").value("COMPLETED"))
-                .andExpect(jsonPath("$.accountNumber").value("ACC123"))
+                .andExpect(jsonPath("$.accountNumber").value("GB29NWBK60161331926819"))
                 .andExpect(jsonPath("$.amount").value(1000.0));
     }
 
     @Test
     public void whenCreateTransactionWithInvalidAmount_thenReturnBadRequest() throws Exception {
-        // Arrange
+
         TransactionRequest request = new TransactionRequest()
-                .accountNumber("ACC123")
+                // no need for a real account
+                // because call should fail before hitting the controller
+                .accountNumber("89123949871234879234897")
                 .transactionType(TransactionRequest.TransactionTypeEnum.DEPOSIT)
                 .amount(11000.0);// Exceeds maximum
 
-        // Act & Assert
-        mockMvc.perform(post(BASE_URL)
+        mockMvc.perform(post(PATH)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
@@ -92,13 +81,13 @@ public class TransactionAPIControllerTest {
     }
 
     @Test
-    void whenAccountNotFound_thenReturnCorrectErrorResponse() throws Exception {
+    void whenAccountNotFound_thenThrowCorrectErrorResponse() throws Exception {
         TransactionRequest request = new TransactionRequest()
                 .accountNumber("NONEXISTENT")
                 .amount(10d)
                 .transactionType(TransactionRequest.TransactionTypeEnum.DEPOSIT);
 
-        MvcResult result = mockMvc.perform(post(BASE_URL)
+        MvcResult result = mockMvc.perform(post(PATH)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isNotFound())
@@ -130,7 +119,7 @@ public class TransactionAPIControllerTest {
                     .amount(10.0)
                     .transactionType(TransactionRequest.TransactionTypeEnum.DEPOSIT);
 
-            MvcResult result = mockMvc.perform(post(BASE_URL)
+            MvcResult result = mockMvc.perform(post(PATH)
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
                     .andReturn();
@@ -161,7 +150,7 @@ public class TransactionAPIControllerTest {
                 .amount(200.0)
                 .transactionType(TransactionRequest.TransactionTypeEnum.WITHDRAWAL);
 
-        MvcResult result = mockMvc.perform(post(BASE_URL)
+        MvcResult result = mockMvc.perform(post(PATH)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
@@ -190,7 +179,7 @@ public class TransactionAPIControllerTest {
                 .amount(200.0)
                 .transactionType(TransactionRequest.TransactionTypeEnum.WITHDRAWAL);
 
-        MvcResult result = mockMvc.perform(post(BASE_URL)
+        MvcResult result = mockMvc.perform(post(PATH)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
@@ -219,7 +208,7 @@ public class TransactionAPIControllerTest {
                 .amount(200.0)
                 .transactionType(TransactionRequest.TransactionTypeEnum.WITHDRAWAL);
 
-        MvcResult result = mockMvc.perform(post(BASE_URL)
+        MvcResult result = mockMvc.perform(post(PATH)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
@@ -234,7 +223,7 @@ public class TransactionAPIControllerTest {
                 () -> assertEquals("400", errorResponse.getHttpErrorCode()),
                 () -> assertEquals(ErrorCode.INSUFFICIENT_BALANCE.getCode(),
                         errorResponse.getErrorCode()),
-                () -> assertNotNull(errorResponse.getErrorMessage())
+                () -> assertEquals("Balance cannot drop below $100 for existing accounts", errorResponse.getErrorMessage())
         );
     }
 
@@ -246,7 +235,9 @@ public class TransactionAPIControllerTest {
     private AccountEntity createTestAccount() {
 
         return accountAPIService.createAccount(
-                3453454358l,
+                3453454358L,
+                "Bob",
+                "Builder",
                 "ACC" + Math.random(),
                 100.0
         );
