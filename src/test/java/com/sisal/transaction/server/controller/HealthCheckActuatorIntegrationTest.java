@@ -14,13 +14,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
- * Test Suite will test the Transaction API controller by ignoring the filter chain.
+ * Test Suite will test OTB features in spring boot (the health check actuator).
  */
 @SpringBootTest
 @AutoConfigureMockMvc
 @Import(TestConfig.class)
 @ActiveProfiles("test") // Loads application-test.properties
-public class StartupIntegrationTests {
+public class HealthCheckActuatorIntegrationTest {
 
     private static final String PATH = "/actuator/health";
 
