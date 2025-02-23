@@ -142,7 +142,7 @@ WHERE status = 'COMPLETED';
 Insert an account record if you want to test the server using Postman Test Suite:
 ```sql
 INSERT INTO transaction_system.accounts (account_number, first_name, last_name, balance, created_at, version)
-VALUES ('ACC123', 'John', 'Doe', 1000.00, SYSUTCDATETIME(), 0);
+VALUES ('GB29NWBK60161331926819', 'John', 'Doe', 1000.00, SYSUTCDATETIME(), 0);
 ```
 ### 3.2 Advanced Implementation
 I could have implemented the transaction creation business logic within the database using stored procedures. 
