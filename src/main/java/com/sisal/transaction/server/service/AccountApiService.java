@@ -8,17 +8,20 @@ import org.springframework.stereotype.Service;
 import java.time.OffsetDateTime;
 
 @Service
-public class AccountAPIService {
+public class AccountApiService {
 
     private final AccountRepository accountRepository;
 
     @Autowired
-    public AccountAPIService(AccountRepository accountRepository) {
+    public AccountApiService(AccountRepository accountRepository) {
         this.accountRepository = accountRepository;
     }
 
-    public AccountEntity createAccount(String accountId, Double initialBalance) {
+    public AccountEntity createAccount(Long accountId, String firstName, String lastName, String accountNumber, Double initialBalance) {
         AccountEntity account = new AccountEntity();
+        account.setFirstName(firstName);
+        account.setLastName(lastName);
+        account.setAccountNumber(accountNumber);
         account.setAccountId(accountId);
         account.setBalance(initialBalance);
         account.setCreatedAt(OffsetDateTime.now());
