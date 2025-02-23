@@ -91,7 +91,12 @@
             <artifactId>h2</artifactId>
             <scope>test</scope>
         </dependency>
-
+        <!--Logging requirement- Custom Request/Response LogFilter-->
+        <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>2.13.0</version>
+        </dependency>
         <!-- Dev Tools -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -117,7 +122,7 @@
     <build>
         <finalName>TransactionServer</finalName>
         <sourceDirectory>src/main/java</sourceDirectory>
-        <testSourceDirectory>src/test/resources</testSourceDirectory>
+        <testSourceDirectory>src/test/java</testSourceDirectory>
         <outputDirectory>target/bin</outputDirectory>
         <testOutputDirectory>target/bintest</testOutputDirectory>
         <resources>
@@ -125,6 +130,11 @@
                 <directory>src/main/resources</directory>
             </resource>
         </resources>
+        <testResources>
+            <testResource>
+                <directory>src/test/resources</directory>
+            </testResource>
+        </testResources>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -177,6 +187,7 @@
                             <artifactId>lombok</artifactId>
                         </exclude>
                     </excludes>
+
                 </configuration>
             </plugin>
         </plugins>
