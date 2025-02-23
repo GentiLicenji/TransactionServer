@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
 @SpringBootApplication
 @ComponentScan(basePackages = {
+        "com.sisal.transaction.server.filter",
         "com.sisal.transaction.server.controller",
         "com.sisal.transaction.server.delegate",
         "com.sisal.transaction.server.service",
