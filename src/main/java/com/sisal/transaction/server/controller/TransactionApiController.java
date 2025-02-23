@@ -6,7 +6,7 @@
 package com.sisal.transaction.server.controller;
 
 import com.sisal.transaction.server.delegate.TransactionApiDelegate;
-import com.sisal.transaction.server.exception.ErrorResponse;
+import com.sisal.transaction.server.model.rest.ErrorResponse;
 import com.sisal.transaction.server.model.rest.TransactionRequest;
 import com.sisal.transaction.server.model.rest.TransactionResponse;
 import io.swagger.annotations.*;
