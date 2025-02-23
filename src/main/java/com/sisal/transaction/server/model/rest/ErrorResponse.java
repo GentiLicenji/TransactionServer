@@ -1,4 +1,4 @@
-package com.sisal.transaction.server.exception;
+package com.sisal.transaction.server.model.rest;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.annotations.ApiModelProperty;

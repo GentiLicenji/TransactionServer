@@ -1,5 +1,6 @@
 package com.sisal.transaction.server.exception;
 
+import com.sisal.transaction.server.model.rest.ErrorResponse;
 import com.sisal.transaction.server.util.ErrorCode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,7 +20,7 @@ public class GlobalExceptionHandler {
                 .errorCode(ex.getErrorCode().getCode())
                 .errorMessage(ex.getMessage());
 
-        logger.error("Account not found: {}", ex.getMessage());
+        logger.error("Invalid account information. {}", ex.getMessage());
         return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
     }
 
