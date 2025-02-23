@@ -44,8 +44,10 @@ public class TransactionApiService {
         TransactionEntity transactionEntity = createTransaction(transactionAPIRequest.getaccountNumber(), transactionAPIRequest.getAmount(), transactionType);
 
         TransactionAPIResponse.StatusEnum statusEnum = TransactionAPIResponse.StatusEnum.fromValue(transactionEntity.getStatus().toString());
+        TransactionAPIResponse.TransactionTypeEnum tranType = TransactionAPIResponse.TransactionTypeEnum.fromValue(transactionEntity.getTransactionType().toString());
 
         return new TransactionAPIResponse()
+                .transactionType(tranType)
                 .accountNumber(transactionEntity.getAccount().getAccountNumber())
                 .amount(transactionEntity.getAmount())
                 .status(statusEnum)
@@ -74,7 +76,7 @@ public class TransactionApiService {
 
         AccountEntity account = accountRepository
                 .findByAccountNumber(accountNumber)
-                .orElseThrow(() -> new AccountNotFoundException("Account not found for :" + accountNumber));
+                .orElseThrow(() -> new AccountNotFoundException("Account not found for accountNumber=" + accountNumber));
 
         if (isRateLimitExceeded(account.getAccountId())) {
             throw new TransactionRateLimitException(
