@@ -1,6 +1,19 @@
 # TransactionServer
-
+Demo project showcasing capabilities of Gentian Licenji as a Senior Software Engineer.
 ## Project overview
+During an approximate 4-day work the following major tickets were carried over:
+
+[SISAL-01]: Initial project setup
+
+[SISAL-02]: Unit testing
+
+[SISAL-03]: DB connectivity and repository setup
+
+[SISAL-04]: Authentication
+
+[SISAL-05]: Exception handling / Logging / Validation
+
+[SISAL-06]: Swagger UI setup.
 
 ## Setup instructions
 
@@ -56,6 +69,16 @@ MapStruct vs Lombok vs Fluid API setters
 <br/> I would opt out for the Fluid api setters using pure java code. It is also the common choice when generating java models in Swagger/OpenAPI.
 <br/> I would use mapstruct for complex model mappings that require a lot of code manipulation as it simplifies the whole process and saves time.
 
+### Application properties
+All sensitive properties like username passwords will be setup as kubernetes secrets in a cloud deployment environment.
+<br/>Depending on the cloud provider, they would be linked with specific solutions
+(HashiCorp Vault, AWS secret manager,Azure Key Vault,Google Cloud Secret Manager etc.)
+<br/> Sensitive data can also be managed by jenkins pipeline for an on-prem solution,
+and they can be injected during deployment using custom scripts.
+
+For multi-tenant and multi-cluster complex deployments, I would highly recommend
+applying Helm charts to manage the different property files.
+
 ### Business Logic Implementation Ideas
 
 * Transaction count limit.
@@ -70,9 +93,8 @@ but can be computationally intensive and can cause transaction locking in high c
 - It's more efficient than database queries
 - It automatically cleans up after the minute expires
 
-* Maximum transaction amount (Validation is applied )
-* Minimum account balance
-* Avoid race conditions by locking account row while checking balance or transaction count.
+* Maximum transaction amount (Validation is applied)
+* Minimum-account balance
 
 ## Database Choice
 ### Preface
@@ -124,17 +146,15 @@ src/
 ```
 
 
-
-
 ## Third-party library usage.
-
-### MapStruct vs
 
 ### Spring boot versioning decision
 <br/> Due to the project requirement to use java 8 or above, 
 <br/> I was constrained to use an older version of Spring Boot (Spring Boot 2.7.x will be supported until August 2024).
 <br/>Despite development and setup being easier with newer spring boot versions by using Spring Initializr I chose to go the harder path.
 Also in my personal experience financial institutions are hard to adapt to newer technological advancement.
+
+### MapStruct vs
 
 ### SpringFox vs SpringDoc
 <br/> SpringDoc is the new team, where old members from SpringFox moved to. 
