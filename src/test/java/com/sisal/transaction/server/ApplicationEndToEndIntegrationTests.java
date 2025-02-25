@@ -30,24 +30,37 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 )
 class ApplicationEndToEndIntegrationTests {
 
+    private static final String HMAC_HEADER = "X-HMAC-SIGNATURE";
+    private static final String API_KEY_HEADER = "X-API-KEY";
+    private static final String TIMESTAMP_HEADER = "X-TIMESTAMP";
+    private static final String PATH = "/api/transactions";
+
+    //Loading key from the application.properties file.
+    @Value("${api.security.clients[0].api-key}")
+    private String ADMIN_API_KEY_VALUE;
+
     @LocalServerPort
     private int port;
 
     @Autowired
     private TestRestTemplate restTemplate;
 
-    private String baseUrl;
+    @Autowired
+    private ApiKeyProperties apiKeyProperties;
+
+    @Autowired
+    private ObjectMapper objectMapper;
+
     private HttpHeaders headers;
+    private String transactionsUri;
 
     @BeforeEach
     void setUp() {
-        baseUrl = "http://localhost:" + port + "/api/transactions";
         headers = new HttpHeaders();
+        transactionsUri = "http://localhost:" + port + "/api/transactions";
         headers.setContentType(MediaType.APPLICATION_JSON);
-//        headers.add("X-HMAC-Signature", "test-signature");
-//        headers.add("X-API-Key", "test-api-key");
-//        headers.add("X-Timestamp", String.valueOf(System.currentTimeMillis()));
-
+        headers.add(API_KEY_HEADER, ADMIN_API_KEY_VALUE);
+        headers.add(TIMESTAMP_HEADER, String.valueOf(System.currentTimeMillis()));
     }
 
     @PostConstruct
@@ -57,18 +70,28 @@ class ApplicationEndToEndIntegrationTests {
     }
 
     @Test
-    void createTransaction_Success_HappyPath() {
+    void createTransaction_Success_HappyPath() throws JsonProcessingException {
         // Given
         TransactionRequest request = new TransactionRequest()
                 .accountNumber("GB29NWBK60161331926819")
                 .amount(60.0)
                 .transactionType(TransactionRequest.TransactionTypeEnum.DEPOSIT);
 
+        //Calculate auth signature
+        String HmacSignature = AuthUtil.calculateHmac(HttpMethod.POST.name(),
+                PATH,
+                "",
+                objectMapper.writeValueAsString(request),
+                headers.getFirst(TIMESTAMP_HEADER),
+                headers.getFirst(API_KEY_HEADER),
+                apiKeyProperties.getClientByApiKey(ADMIN_API_KEY_VALUE).getSecretKey());
+        headers.add(HMAC_HEADER, HmacSignature);
+
         HttpEntity<TransactionRequest> httpEntity = new HttpEntity<>(request, headers);
 
         // Perform REST API call
         ResponseEntity<TransactionResponse> response = restTemplate.postForEntity(
-                baseUrl,
+                transactionsUri,
                 httpEntity,
                 TransactionResponse.class
         );

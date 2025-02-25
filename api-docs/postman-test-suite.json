@@ -12,6 +12,18 @@
           {
             "key": "Content-Type",
             "value": "application/json"
+          },
+          {
+            "key": "X-API-Key",
+            "value": "8x7HHSG2J5ns9LzN3k4m6P5Q"
+          },
+          {
+            "key": "X-Timestamp",
+            "value": "{{$timestamp}}"
+          },
+          {
+            "key": "X-HMAC-Signature",
+            "value": "{{hmac}}"
           }
         ],
         "body": {
@@ -29,6 +41,18 @@
           {
             "key": "Content-Type",
             "value": "application/json"
+          },
+          {
+            "key": "X-API-Key",
+            "value": "8x7HHSG2J5ns9LzN3k4m6P5Q"
+          },
+          {
+            "key": "X-Timestamp",
+            "value": "{{$timestamp}}"
+          },
+          {
+            "key": "X-HMAC-Signature",
+            "value": "{{hmac}}"
           }
         ],
         "body": {
@@ -46,6 +70,18 @@
           {
             "key": "Content-Type",
             "value": "application/json"
+          },
+          {
+            "key": "X-API-Key",
+            "value": "8x7HHSG2J5ns9LzN3k4m6P5Q"
+          },
+          {
+            "key": "X-Timestamp",
+            "value": "{{$timestamp}}"
+          },
+          {
+            "key": "X-HMAC-Signature",
+            "value": "{{hmac}}"
           }
         ],
         "body": {
@@ -53,6 +89,34 @@
           "raw": "{\n    \"accountNumber\": \"GB29NWBK60161331926819\",\n    \"transactionType\": \"INVALID_TYPE\",\n    \"amount\": 1000.00\n}"
         },
         "url": "http://localhost:8080/api/transactions"
+      }
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Set timestamp",
+          "pm.variables.set('$timestamp', Date.now());",
+          "",
+          "// Generate HMAC",
+          "const apiKey = pm.request.headers.get('X-API-Key');",
+          "const timestamp = pm.variables.get('$timestamp');",
+          "const body = pm.request.body.raw;",
+          "",
+          "// String to sign: API_KEY + TIMESTAMP + REQUEST_BODY",
+          "const stringToSign = apiKey + timestamp + body;",
+          "",
+          "// Secret key for HMAC",
+          "const secretKey = 'bK7dF9qW2pR5vT8xL4mN3jH6cU9wY1aE';",
+          "",
+          "// Generate HMAC using CryptoJS",
+          "const hmac = CryptoJS.HmacSHA256(stringToSign, secretKey).toString();",
+          "",
+          "pm.variables.set('hmac', hmac);"
+        ]
       }
     }
   ]
