@@ -1,5 +1,6 @@
 package com.sisal.transaction.server.util;
 
+import com.sisal.transaction.server.exception.AuthInvalidTimestampException;
 import com.sisal.transaction.server.exception.AuthSignatureException;
 import com.sisal.transaction.server.exception.AuthTimestampExpiredException;
 import com.sisal.transaction.server.util.logging.CustomRequestWrapper;
@@ -20,14 +21,19 @@ public class AuthUtil {
     public static void validateTimestamp(String timestampStr, long MAX_TIMESTAMP_DIFF) throws AuthTimestampExpiredException {
         try {
             long timestamp = Long.parseLong(timestampStr);
+            if(timestamp<=0){
+                throw new AuthInvalidTimestampException("Timestamp cannot be 0 or negative.");
+            }
             long currentTime = System.currentTimeMillis();
             long diff = Math.abs(currentTime - timestamp);
 
             if (diff > MAX_TIMESTAMP_DIFF) {
                 throw new AuthTimestampExpiredException("Timestamp expired");
+            }else if(timestamp>currentTime){
+                throw new AuthTimestampExpiredException("Timestamp cannot be in the future");
             }
         } catch (NumberFormatException e) {
-            throw new AuthTimestampExpiredException("Invalid timestamp format");
+            throw new AuthInvalidTimestampException("Invalid timestamp format");
         }
     }
 

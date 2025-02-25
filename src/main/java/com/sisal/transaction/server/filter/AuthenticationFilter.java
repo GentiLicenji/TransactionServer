@@ -2,10 +2,7 @@ package com.sisal.transaction.server.filter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sisal.transaction.server.config.ApiKeyProperties;
-import com.sisal.transaction.server.exception.AuthException;
-import com.sisal.transaction.server.exception.AuthMissingHeaderException;
-import com.sisal.transaction.server.exception.AuthSignatureException;
-import com.sisal.transaction.server.exception.AuthTimestampExpiredException;
+import com.sisal.transaction.server.exception.*;
 import com.sisal.transaction.server.model.rest.ErrorResponse;
 import com.sisal.transaction.server.util.AuthUtil;
 import com.sisal.transaction.server.util.ErrorCode;
@@ -95,7 +92,7 @@ public class AuthenticationFilter extends OncePerRequestFilter {
 
             filterChain.doFilter(requestWrapper, response);
 
-        } catch (AuthMissingHeaderException |AuthTimestampExpiredException | AuthSignatureException | AuthException e) {
+        } catch (AuthMissingHeaderException | AuthInvalidTimestampException | AuthTimestampExpiredException | AuthSignatureException | AuthException e) {
             logger.error(e.getMessage(), e);
             sendErrorResponse(response, HttpStatus.UNAUTHORIZED, e.getErrorCode(), e.getMessage());
         } catch (Exception exception) {
