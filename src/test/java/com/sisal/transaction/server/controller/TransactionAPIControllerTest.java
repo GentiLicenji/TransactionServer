@@ -1,18 +1,22 @@
 package com.sisal.transaction.server.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.sisal.transaction.server.filter.AuthenticationFilter;
 import com.sisal.transaction.server.model.db.AccountEntity;
 import com.sisal.transaction.server.model.rest.ErrorResponse;
 import com.sisal.transaction.server.model.rest.TransactionRequest;
 import com.sisal.transaction.server.model.rest.TransactionResponse;
 import com.sisal.transaction.server.service.AccountApiService;
 import com.sisal.transaction.server.util.ErrorCode;
-import com.sisal.transaction.server.util.TestConfig;
+import com.sisal.transaction.test.config.TestConfig;
+import com.sisal.transaction.test.config.TestDisableSecurityConfig;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -26,12 +30,17 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
- * Test Suite will test the Transaction API controller.
+ * Integration test suite for Transaction API endpoints.
+ * <p>
+ * Validates transaction processing, business rules, and error handling scenarios.
+ * <p>
+ * Including deposit/withdrawal operations, amount validations, and account verifications.
  */
+
 @SpringBootTest
-@AutoConfigureMockMvc
-@Import(TestConfig.class)
-@ActiveProfiles("test") // Loads application-test.properties
+@AutoConfigureMockMvc(addFilters = false)//Disables all filters
+@Import(TestConfig.class)//Loads H2 datasource
+@ActiveProfiles("test")//Loads application-test.properties
 public class TransactionAPIControllerTest {
 
     private static final String PATH = "/api/transactions";
@@ -107,8 +116,7 @@ public class TransactionAPIControllerTest {
     public void whenCreateTransactionWithInvalidAmount_thenThrowValidErrorResponse() throws Exception {
 
         TransactionRequest request = new TransactionRequest()
-                // no need for a real account
-                // because call should fail before hitting the controller
+                // no need for a real account, because call should fail before hitting the controller
                 .accountNumber("89123949871234879234897")
                 .transactionType(TransactionRequest.TransactionTypeEnum.DEPOSIT)
                 .amount(11000.0);// Exceeds maximum

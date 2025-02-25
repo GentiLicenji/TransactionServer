@@ -1,6 +1,6 @@
 package com.sisal.transaction.server.controller;
 
-import com.sisal.transaction.server.util.TestConfig;
+import com.sisal.transaction.test.config.TestConfig;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -17,9 +17,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * Test Suite will test OTB features in spring boot (the health check actuator).
  */
 @SpringBootTest
-@AutoConfigureMockMvc
 @Import(TestConfig.class)
-@ActiveProfiles("test") // Loads application-test.properties
+@ActiveProfiles("test")//Loads application-test.properties
+@AutoConfigureMockMvc(addFilters = false)//Disables all filters including the Security filter chain
 public class HealthCheckActuatorIntegrationTest {
 
     private static final String PATH = "/actuator/health";
