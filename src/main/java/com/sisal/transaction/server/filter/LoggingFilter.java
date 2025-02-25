@@ -4,9 +4,6 @@ import com.sisal.transaction.server.util.logging.CustomRequestWrapper;
 import com.sisal.transaction.server.util.logging.CustomResponseWrapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.core.Ordered;
-import org.springframework.core.annotation.Order;
-import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -23,8 +20,6 @@ import java.time.Instant;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-@Component
-@Order(Ordered.HIGHEST_PRECEDENCE)
 public class LoggingFilter extends OncePerRequestFilter {
 
     private static final Logger logger = LoggerFactory.getLogger(LoggingFilter.class);
