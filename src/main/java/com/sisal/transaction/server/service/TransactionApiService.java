@@ -108,12 +108,14 @@ public class TransactionApiService {
             account.setBalance(newBalance);
         }
 
+        // Commit this transaction immediately to ensure it exists
+        transaction = commitAndStartNewTransaction(transaction);
+
         try {
             accountRepository.save(account);
-            transactionRepository.save(transaction);
         } catch (Exception exception) {
             updateFailedStatus(transaction.getTransactionId());
-            throw new PersistenceException("Failed to persist account / transaction record to DB", exception);
+            throw new PersistenceException("Failed to persist account update record to DB. Transaction persisted with a failed status.", exception);
         }
         return transaction;
     }
@@ -142,7 +144,15 @@ public class TransactionApiService {
     }
 
     /**
-     * @param transactionId identifier
+     * Commit first transaction create record to DB.
+     */
+    @Transactional(Transactional.TxType.REQUIRES_NEW)
+    public TransactionEntity commitAndStartNewTransaction(TransactionEntity transaction) {
+        return transactionRepository.save(transaction);
+    }
+
+    /**
+     * Mark the original transaction as failed in case of account update failure.
      */
     @Transactional(Transactional.TxType.REQUIRES_NEW)
     public void updateFailedStatus(UUID transactionId) {
