@@ -19,15 +19,34 @@ import java.util.Map;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
-@SpringBootTest(
-        webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-        properties = {
-                "spring.test.database.replace=none",
-                "spring.datasource.url=jdbc:sqlserver://localhost;databaseName=transactions_db;encrypt=false;trustServerCertificate=true",  // Uses main properties
-                "spring.jpa.hibernate.ddl-auto=none",// Prevents test DB schema creation
-                "spring.jpa.properties.hibernate.default_schema=transaction_system"
-        }
-)
+/**
+ * End-to-End Integration Tests for the Application's Transaction API endpoints.
+ *
+ * <p>This test suite performs comprehensive integration testing by loading the complete
+ * application context and configuration properties.
+ * It validates the entire request-response
+ * cycle including security mechanisms, logging, request processing, and response handling.</p>
+ *
+ * <p>Key features tested include:</p>
+ * <ul>
+ *   <li>HMAC Authentication</li>
+ *   <li>API Key validation</li>
+ *   <li>Transaction creation and processing</li>
+ *   <li>Response structure and status codes</li>
+ * </ul>
+ *
+ * <p>The test environment uses:</p>
+ * <ul>
+ *   <li>Random server port to avoid conflicts</li>
+ *   <li>TestRestTemplate for HTTP requests</li>
+ *   <li>Real application properties loaded from application.properties</li>
+ * </ul>
+ *
+ * @see SpringBootTest
+ * @see TestRestTemplate
+ * @see ApiKeyProperties
+ */
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class ApplicationEndToEndIntegrationTests {
 
     private static final String HMAC_HEADER = "X-HMAC-SIGNATURE";
