@@ -19,7 +19,7 @@
 
     <!-- File Appender -->
     <appender name="File" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>target/logs/application.log</file>
+        <file>target/logs/transaction-server-test.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
             <fileNamePattern>transaction-server-test.%d{yyyy-MM-dd}.log</fileNamePattern>
             <maxHistory>30</maxHistory>
