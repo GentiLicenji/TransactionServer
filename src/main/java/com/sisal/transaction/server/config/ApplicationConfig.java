@@ -1,13 +1,39 @@
 package com.sisal.transaction.server.config;
 
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.sisal.transaction.server.filter.AuthenticationFilter;
 import com.sisal.transaction.server.filter.LoggingFilter;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
+@EnableConfigurationProperties(ApiKeyProperties.class)
 public class ApplicationConfig {
+
+    @Bean
+    public ObjectMapper objectMapper() {
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.registerModule(new JavaTimeModule());
+        mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+        mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        return mapper;
+    }
+
+    @Bean
+    public AuthenticationFilter authenticationFilter(ApiKeyProperties apiKeyProperties, ObjectMapper objectMapper) {
+        return new AuthenticationFilter(apiKeyProperties, objectMapper);
+    }
+
+    @Bean
+    public LoggingFilter loggingFilter() {
+        return new LoggingFilter();
+    }
 
     /**
      * Global REST Request / Response Filter that gets invoked on the filter layer (Java servlet API).
@@ -17,7 +43,7 @@ public class ApplicationConfig {
         FilterRegistrationBean<LoggingFilter> registrationBean = new FilterRegistrationBean<>();
         registrationBean.setFilter(loggingFilter);
         registrationBean.addUrlPatterns("/api/*");
-        registrationBean.setOrder(1);
+        registrationBean.setOrder(2);
         return registrationBean;
     }
 }
