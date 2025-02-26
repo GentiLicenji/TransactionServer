@@ -108,14 +108,29 @@ public class TransactionApiService {
             account.setBalance(newBalance);
         }
 
-        // Commit this transaction immediately to ensure it exists
-        transaction = commitAndStartNewTransaction(transaction);
+        // Commit the transaction create immediately to ensure it exists
+        TransactionEntity savedTransaction;
+        try {
+
+            savedTransaction = commitAndStartNewTransaction(transaction);
+            logger.debug("Initial transaction created with ID: {}", savedTransaction.getTransactionId());
+        } catch (Exception exception) {
+
+            logger.error("Failed to create initial transaction", exception);
+            throw new PersistenceException("Could not create transaction record", exception);
+        }
 
         try {
+
             accountRepository.save(account);
+            logger.debug("Account update successful for transaction: {}", savedTransaction.getTransactionId());
+
         } catch (Exception exception) {
+
             updateFailedStatus(transaction.getTransactionId());
-            throw new PersistenceException("Failed to persist account update record to DB. Transaction persisted with a failed status.", exception);
+            logger.debug("Transaction {} marked as failed", savedTransaction.getTransactionId());
+            throw new PersistenceException("Failed to persist account update record to DB. " +
+                    "Transaction persisted with a failed status.", exception);
         }
         return transaction;
     }
