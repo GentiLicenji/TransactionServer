@@ -22,8 +22,47 @@ import java.time.Duration;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
+/**
+ * Service for managing financial transactions and account operations.
+ *
+ * <p>Provides transaction creation, account balance management, and transaction status handling
+ * with proper transactional boundaries and error recovery.</p>
+ *
+ * <p>Key Features:</p>
+ * <ul>
+ *   <li>Transaction creation with atomic account updates</li>
+ *   <li>Rate limiting (5 transactions/minute)</li>
+ *   <li>Balance validation rules</li>
+ *   <li>New account handling</li>
+ *   <li>Transaction failure recovery</li>
+ * </ul>
+ *
+ * <p>Business Rules:</p>
+ * <ul>
+ *   <li>Minimum balance of $100 for existing accounts</li>
+ *   <li>Rate limit of 5 transactions per minute</li>
+ *   <li>Special handling for accounts less than 10 days old</li>
+ *   <li>Insufficient funds validation</li>
+ * </ul>
+ *
+ * <p>Transaction Management:</p>
+ * <ul>
+ *   <li>Main transaction for account updates</li>
+ *   <li>Separate transaction for initial transaction record (REQUIRES_NEW)</li>
+ *   <li>Independent transaction for failure status updates</li>
+ * </ul>
+ *
+ * @throws AccountNotFoundException if an account doesn't exist
+ * @throws TransactionRateLimitException if rate limit exceeded
+ * @throws InsufficientBalanceException if balance rules violated
+ * @throws PersistenceException if database operations fail
+ * @see TransactionEntity
+ * @see AccountEntity
+ * @see Transactional
+ */
 @Service
 public class TransactionApiService {
+
     private static final Logger logger = LoggerFactory.getLogger(TransactionApiService.class);
 
     private static final int MAX_TRANSACTIONS_PER_MINUTE = 5;
