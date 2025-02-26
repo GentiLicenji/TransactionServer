@@ -97,7 +97,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 @Import(TestConfig.class)
 @ActiveProfiles("test")
-public class AuthenticationIntegrationTests {
+public class AuthenticationFilterIT {
 
     private static final String HMAC_HEADER = "X-HMAC-SIGNATURE";
     private static final String API_KEY_HEADER = "X-API-KEY";

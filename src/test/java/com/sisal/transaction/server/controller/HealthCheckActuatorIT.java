@@ -20,7 +20,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Import(TestConfig.class)
 @ActiveProfiles("test")//Loads application-test.properties
 @AutoConfigureMockMvc(addFilters = false)//Disables all filters including the Security filter chain
-public class HealthCheckActuatorIntegrationTest {
+public class HealthCheckActuatorIT {
 
     private static final String PATH = "/actuator/health";
 

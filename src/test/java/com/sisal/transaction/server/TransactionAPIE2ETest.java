@@ -55,7 +55,7 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
  * @see ApiKeyProperties
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-public class ApplicationEndToEndIntegrationTests {
+public class TransactionAPIE2ETest {
 
     private static final String HMAC_HEADER = "X-HMAC-SIGNATURE";
     private static final String API_KEY_HEADER = "X-API-KEY";

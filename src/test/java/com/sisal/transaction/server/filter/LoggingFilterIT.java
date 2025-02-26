@@ -37,7 +37,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Import({TestConfig.class, TestDisableSecurityConfig.class})//Loads H2 datasource and disables the SecurityFilter chain.
 @ActiveProfiles("test")//Loads application-test.properties
         //TODO: Fix no security chain loading.
-class LoggingIntegrationTests {
+class LoggingFilterIT {
 
     private static final String BASE_URL = "/api/transactions";
 
