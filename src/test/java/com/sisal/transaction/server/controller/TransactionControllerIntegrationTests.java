@@ -30,11 +30,48 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
- * Integration test suite for Transaction API endpoints.
- * <p>
- * Validates transaction processing, business rules, and error handling scenarios.
- * <p>
- * Including deposit/withdrawal operations, amount validations, and account verifications.
+ * Integration Test Suite for Transaction API Controller Endpoints
+ *
+ * <p>This test suite performs comprehensive integration testing of the transaction processing
+ * endpoints, including validation of business rules, error handling, and successful transaction
+ * flows.
+ * Tests are executed with MockMvc and use an H2 in-memory database.</p>
+ *
+ * <p>Configuration:</p>
+ * <ul>
+ *   <li>Uses H2 database configuration from {@link TestConfig}</li>
+ *   <li>Runs with 'test' profile loading application-test.properties</li>
+ *   <li>Disabled security filters for focused controller testing</li>
+ * </ul>
+ *
+ * <p>Test Categories:</p>
+ * <ul>
+ *   <li>Positive Scenarios:
+ *     <ul>
+ *       <li>Successful transaction creation (deposit/withdrawal)</li>
+ *       <li>Balance management within limits</li>
+ *       <li>Transaction status verification</li>
+ *     </ul>
+ *   </li>
+ *   <li>Negative Scenarios:
+ *     <ul>
+ *       <li>Invalid transaction amounts</li>
+ *       <li>Non-existent accounts</li>
+ *       <li>Rate limiting violations</li>
+ *       <li>Insufficient balance handling</li>
+ *       <li>Minimum balance violations</li>
+ *     </ul>
+ *   </li>
+ * </ul>
+ *
+ * @version 1.2
+ * @see TransactionRequest
+ * @see TransactionResponse
+ * @see ErrorResponse
+ * @see AccountEntity
+ * @see AccountApiService
+ * @see TestConfig
+ * @since 1.0
  */
 
 @SpringBootTest
