@@ -1,24 +1,164 @@
 # TransactionServer
-Demo project showcasing capabilities of Gentian Licenji as a Senior Software Engineer.
+Demo project showcasing the capabilities of Gena tian Licenji as a Senior Software Engineer.
+
 ## Project overview
-During an approximate 4-day work the following major tickets were carried over:
+The following is the project structure to be expected:
 
-[SISAL-01]: Initial project setup
+```markdown
+📁 main
+├── 📁 java
+│   └── 📁 server
+│       ├── 📁 config
+│       │   ├── ApiKeyProperties
+│       │   ├── SecurityConfig
+│       │   └── SwaggerConfig
+│       │
+│       ├── 📁 controller
+│       │   └── TransactionController
+│       │
+│       ├── 📁 delegate
+│       │   └── TransactionDelegate
+│       │
+│       ├── 📁 exception
+│       │   ├── AccountNotFoundException
+│       │   ├── AuthException
+│       │   └── GlobalExceptionHandler
+│       │
+│       ├── 📁 filter
+│       │   ├── AuthenticationFilter
+│       │   └── LoggingFilter
+│       │
+│       ├── 📁 model
+│       │   ├── 📁 api
+│       │   │   ├── TransactionRequest
+│       │   │   └── TransactionResponse
+│       │   ├── 📁 db
+│       │   │   ├── AccountEntity
+│       │   │   └── TransactionEntity
+│       │   └── 📁 rest
+│       │       └── ErrorResponse
+│       │
+│       ├── 📁 repository
+│       │   ├── AccountRepository
+│       │   └── TransactionRepository
+│       │
+│       ├── 📁 service
+│       │   └── TransactionApiService
+│       │
+│       ├── 📁 util
+│       │   ├── AuthUtil
+│       │   ├── ErrorCode
+│       │   └── 📁 filter
+│       │       └── CustomRequestWrapper
+│       │
+│       └── AppStarter
+```
 
-[SISAL-02]: Unit testing
+Key components:
+- 🔒 `config`: Application configurations
+- 🎮 `controller`: API endpoints
+- 🎯 `delegate`: Business logic delegation
+- ⚠️ `exception`: Error handling
+- 🔍 `filter`: Request/Response processing
+- 📝 `model`: Data structures
+- 💾 `repository`: Data access
+- ⚙️ `service`: Business logic
+- 🛠️ `util`: Helper classes
 
-[SISAL-03]: DB connectivity and repository setup
+### Work breakdown
+During an approximate 5-day work, the following major tickets were completed:
+* [SISAL-01]: Initial project setup + Documentation
+* [SISAL-02]: Unit testing
+* [SISAL-03]: DB connectivity and repository setup
+* [SISAL-04]: Authentication Implementation
+* [SISAL-05]: Exception handling / Logging / Validation
+* [SISAL-06]: Swagger UI setup.
+* [SISAL-07]: BugFixing: Transaction API service data flow.
 
-[SISAL-04]: Authentication
+## How-to Setup
+Quick guide to get started on the project.
+### 0. Required Software 🛠
+```markdown
+* Java 8 or higher
+* Maven 3.6+
+* Git
+* Docker (optional, for containerization)
+```
+### 1. Clone repository
+git clone [repository-url]
 
-[SISAL-05]: Exception handling / Logging / Validation
-
-[SISAL-06]: Swagger UI setup.
-
-## Setup instructions
-
-### DB Setup
+### 2. IDE Setup 💻
+```markdown
+* Install Lombok plugin
+* Enable annotation processing
+* Import as Maven project
+* Set Java 8 as SDK
+```
+### 3. Database 📊
 Please see the [DB Setup README](./DBSetup.md) on setup details.
+
+## How to run as embedded?
+0. **Build all required artifacts**: 
+<br/>Note: None required for this demo project
+    ```bash
+    mvn clean install
+    ```
+1. Go inside project repo.
+    ```shell
+    cd TransactionSpringBoot
+    ```
+2. Build the server jar by executing
+    ```shell
+    mvn clean package
+    ```
+3. Run the server jar by executing
+    ```shell
+    mvn spring-boot:run
+   ```
+## How to test
+
+### 1. Health Check 🏥
+```bash
+# Browser
+http://localhost:8080/actuator/health
+
+# or curl
+curl -i http://localhost:8080/actuator/health
+```
+
+### 2. Curl Commands 📟
+```bash
+# Set variables
+TIMESTAMP=$(date +%s000)
+API_KEY="8x7HHSG2J5ns9LzN3k4m6P5Q"
+HMAC=$(echo -n "${API_KEY}${TIMESTAMP}{\"accountNumber\":\"GB29NWBK60161331926819\",\"transactionType\":\"DEPOSIT\",\"amount\":1000.00}" | \
+openssl dgst -sha256 -hmac "bK7dF9qW2pR5vT8xL4mN3jH6cU9wY1aE" | cut -d' ' -f2)
+
+# Make request
+curl -i -X POST http://localhost:8080/api/transactions \
+  -H "Content-Type: application/json" \
+  -H "X-API-Key: ${API_KEY}" \
+  -H "X-Timestamp: ${TIMESTAMP}" \
+  -H "X-HMAC-Signature: ${HMAC}" \
+  -d '{"accountNumber":"GB29NWBK60161331926819","transactionType":"DEPOSIT","amount":1000.00}'
+```
+
+### 3. Postman 🚀
+1. Import [collection](api-docs/postman-test-suite.json)
+2. Environment variables set automatically via pre-request script
+3. Run requests:
+  * Success case (DEPOSIT)
+  * Invalid amount (>10000)
+  * Invalid type
+
+### 4. Integration Tests 🧪
+```bash
+# Run all tests
+./mvnw test
+
+# Run main end to end test class
+./mvnw test -Dtest=TransactionAPIE2ETest
+```
 
 ## Automated API changes - Swagger Codegen
 All api changes and definitions are captured through [OpenAPI Specification (OAS) standard](https://swagger.io/specification/).
@@ -40,7 +180,6 @@ All api changes and definitions are captured through [OpenAPI Specification (OAS
 |       |               `-- util
 |       `-- resources
 ```
-
 ***NOTE***
 <br/> I have extensive experience using Swagger (now OpenAPI).
 <br/> During my time at ScotiaBank, I served as the sole contributor to an open-source extension of Swagger Codegen.
@@ -48,20 +187,81 @@ All api changes and definitions are captured through [OpenAPI Specification (OAS
 <br/>For this project, I'm leveraging my own private, customized solution I developed based on Swagger Codegen to ensure robust integration and functionality.
 <br/>This will ensure fast and easy API updates to the codebase straight from the spec changes.
 
+### Swagger UI - Spring Fox
+To view the swagger spec in the browser, go on localhost:8080/swagger-ui/.
+<br>TODO: currently this is bugged due to the auth filter setup.
+Needs more time for investigation.
+
 ## Design Decisions and Best Practices
 ### Architecture Overview
 Good design patterns that are followed:
 * Model View Controller pattern (Provides intuitive method based annotation to define a url mapping)
-* Dependency Injection pattern. (Promotes decoupling with singletons and bean auto-wiring )
+* Dependency Injection pattern. (Promotes decoupling with singletons and bean auto-wiring)
 * Front Controller design pattern (Provides centralized logging/authentication/validation/exception-handling)
 
-### Exception Handling and Validation
+### Logging
+#### 1.Custom Request/Response Logging
+Our logging implementation provides comprehensive request/response tracking while ensuring sensitive data protection. The solution revolves around a custom logging filter that captures HTTP interactions, paired with a global masking mechanism for sensitive information.
+By disabling Spring's default web logging, we maintain full control over log output and format. This approach eliminates duplicate logging while ensuring consistent log structure and content across the application.
+
+#### 2.Data Privacy & Masking
+The logging system incorporates a global masking converter that automatically identifies and masks sensitive information before it reaches log files. This ensures compliance with data protection requirements while maintaining useful logging information for debugging and monitoring.
+
+Key masked elements include:
+- Account numbers
+- Personal identifiers
+- Security credentials
+- Authentication tokens
+
+This approach provides a balance between detailed system logging and data privacy requirements, ensuring comprehensive system monitoring without compromising sensitive information.
+### Authentication mechanism
+#### 1.HMAC-Based API Security
+
+Our authentication implementation uses a Hash-based Message Authentication Code (HMAC) approach, providing robust API security while maintaining high performance. This solution ensures request authenticity, prevents tampering, and protects against replay attacks.
+
+#### 2.Key Security Features
+
+The authentication mechanism validates three critical components:
+- API key for client identification
+- Timestamp to prevent replay attacks
+- HMAC signature ensuring request integrity
+
+A 30-minute timestamp window prevents replay attacks while allowing for reasonable clock skew between client and server systems.
+
+#### 3.Spring Security Integration
+
+The solution seamlessly integrates with Spring Security's infrastructure, enabling role-based access control and security context propagation. By extending Spring Security's filter chain, we maintain standard security patterns while implementing custom authentication logic.
+
+This approach provides enterprise-grade API security while remaining lightweight and performant, suitable for high-throughput API environments.
+
+### Validation 
+Like all other cross-cutting concerns, this feature has been standardized as well.
+I let validation be applied by the swagger spec itself through jackson annotation and out-of-the-box spring validator.
+Validation happens during HTTP message conversion before reaching the controller method.
+<br/>Some rare business cases might call for creating a custom validator for complex business rules. 
+<br/>It is recommended to implement these as HandlerInterceptors for the following reasons:
+- Access to handler method information
+- Spring context fully available
+- Better for business validation logic
+- More integration with Spring MVC
+- Runs after request mapping
+
+### Exception Handling
 I am a firm believer in pushing error handling and validation on the outside boundaries of the application.
 <br/> For this reason I do not apply null checks, and try catch blocks within the application logic layers.
 <br/> Of course, there are exceptions to be made on exception handling. Pun intended. 😄
-<br/> I let validation be applied by the swagger spec itself through jackson annotation.
-<br/> Some rare business cases might call
-for creating a custom validator for complex business rules applied on the spring filter chain layer.
+
+[GlobalExceptionHandler](src/main/java/com/sisal/transaction/server/exception/GlobalExceptionHandler.java)
+<br/>I am using out-of-the-box @ControllerAdvice from spring that acts inside the application context.
+<br/>The custom exceptions thrown by the business layer contain application errors and are handled in a centralized manner
+<br/>I also extended ResponseEntityExceptionHandler to override more exception scenarios and obfuscate error details.
+<br/>This will increase application security since we reveal minimal information over REST.
+
+[AuthenticationFilter](src/main/java/com/sisal/transaction/server/filter/AuthenticationFilter.java)
+<br/>On the other hand, the custom authentication exceptions won't be caught by the GlobalExceptionHandler
+because filters operate outside of Spring's DispatcherServlet context.
+<br/>As a result, the error responses are handled manually inside the filter.
+<br/>Note: A centralized exception handling filter can be defined to catch all java native (Servlet API) errors.
 
 ### Object Mapping 
 MapStruct vs Lombok vs Fluid API setters
@@ -77,25 +277,27 @@ All sensitive properties like username passwords will be setup as kubernetes sec
 and they can be injected during deployment using custom scripts.
 
 For multi-tenant and multi-cluster complex deployments, I would highly recommend
-applying Helm charts to manage the different property files.
+applying Helm charts to manage the different configurations.
 
-### Business Logic Implementation Ideas
-
-* Transaction count limit.
-<br/>I implemented this transaction management requirement by using spring data jpa queries. 
+### Business Requirements—Implementation Ideas
+A small section on the way to implement the business requirements mentioned.
+#### Transaction count limit (Rate Limiting)
+I implemented this transaction management requirement by using spring data jpa queries. 
 <br/>This is great for a single instance that requires exact transaction count,
 but can be computationally intensive and can cause transaction locking in high concurrency scenarios.
 <br/> Transaction and account locking are necessary to prevent race conditions during updates.
 
-* <br/>The Redis Cluster Cache approach is the best solution for rate limiting in because:
+<br/>The Redis Cluster Cache approach is the best solution for rate limiting in because:
 - It's more accurate in a distributed environment
 - It automatically handles the sliding window
 - It's more efficient than database queries
 - It automatically cleans up after the minute expires
 
-* Maximum transaction amount (Validation is applied)
-* Minimum-account balance
-
+#### Maximum transaction amount
+This is done automatically as a rest requirement on the spec. Jackson validation through annotation is set up for this.
+#### Minimum account balance
+This is set up as an SQL constraint at the database level through the table SQL schema. 
+<br/>It is also as business logic in the TransactionApiService, but can be removed as redundant.
 ## Database Choice
 ### Preface
 During my 8 years of experience in the fintech space, relational databases were the mandatory choice.
@@ -147,19 +349,40 @@ src/
 
 
 ## Third-party library usage.
+This Section explains the reasoning behind selecting various libraries.
 
 ### Spring boot versioning decision
-<br/> Due to the project requirement to use java 8 or above, 
-<br/> I was constrained to use an older version of Spring Boot (Spring Boot 2.7.x will be supported until August 2024).
-<br/>Despite development and setup being easier with newer spring boot versions by using Spring Initializr I chose to go the harder path.
-Also in my personal experience financial institutions are hard to adapt to newer technological advancement.
+Due to the project requirement to use java 8 or above, 
+<br/>I was constrained to use an older version of Spring Boot (Spring Boot 2.7.x will be supported until August 2024).
+<br/>Despite development and setup being easier with newer spring boot versions by using Spring Initializr,
+I chose to go the harder path.
+Also, in my personal experience, financial institutions are hard to adapt to newer technological advancement.
 
-### MapStruct vs
+### MapStruct vs other mapping libraries
+(Source:Claude 3.5 Sonnet)
+
+**Advantages**:
+* Compile-time Validation
+* Superior Performance
+* Clear Error Messages
+* Developer-Friendly
+
+**Limitations**:
+* Setup Requirements
+* Learning Curve
+
+**Performance Metrics**
+```
+MapStruct:    ~25,000,000 ops/sec
+Manual:       ~24,000,000 ops/sec
+ModelMapper:  ~500,000 ops/sec
+Dozer:        ~100,000 ops/sec
+```
 
 ### SpringFox vs SpringDoc
-<br/> SpringDoc is the new team, where old members from SpringFox moved to. 
-<br/> There are similar political reasons with what happened with Swagger and OpenAPI standard.
-<br/> Due to the project requirement to use swagger I was constrained to use the old version of swagger 2.0.
+SpringDoc is the new team, where old members from SpringFox moved to. 
+<br/>There are similar political reasons with what happened with Swagger and OpenAPI standard.
+<br/>Due to the project requirement to use swagger and the adoption rate I selected the old version of swagger 2.0.
 
 <p> Here's some more details on the Timeline & Evolution:
 <br/> (Source:Claude 3.5 Sonnet)
@@ -193,17 +416,26 @@ Also in my personal experience financial institutions are hard to adapt to newer
   - Legacy projects
   - Specific requirement for Swagger 2.0
   - Cannot upgrade existing codebase
+### Spring Boot DevTools Features
+(Source:Claude 3.5 Sonnet)
+<br/>Here's a concise breakdown of Spring Boot DevTools
 
-## Details on the implementation of the authentication mechanism
+**Benefits**:
+* Restarts application when classpath changes (faster than manual restart)
+* Browser auto-refresh when changes detected
+* Development-friendly property defaults
+* Disables template caching
+* Enables debug logging
+* H2 console enabled
+* Remote debugging support
+* Enhanced error pages
+* Detailed error messages
 
-[//]: # (TODO: Create a custom OncePerRequestFilter in the filter layer)
-[//]: # (TODO: More work needed here)
-sample api request for authentication
-http POST :8080/api/transactions
-X-API-Key: kjasdhfjashdf
-X-Timestamp:1697040568000
-X-HMAC-Signature: kjashdfjkhasdfjhkjlasdfkjasdf
-Content-Type:application/json
+**Limitations**:
+* Not for production use
+* Memory overhead
+* Potential security risks
+* Performance impact
 
 ## Contributing
 This is a product of © Sisal.
@@ -215,7 +447,7 @@ No Licenses.
 
 ## Project status
 Deadline - Feb 21st,2025.
-<br/> Project is on time as scheduled.
+<br/> Project was completed by Feb 25th,2025.
 
 ### References and other resources <a name="references"></a>
 * [Swagger codegen](https://swagger.io/docs/open-source-tools/swagger-codegen/)
