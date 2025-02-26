@@ -8,7 +8,7 @@
 
     <!-- Register the custom converter -->
     <conversionRule conversionWord="maskedMsg"
-                    converterClass="com.sisal.transaction.server.util.logging.GlobalMaskingLogConverter"/>
+                    converterClass="com.sisal.transaction.server.util.GlobalMaskingLogConverter"/>
 
     <!-- Console Appender -->
     <appender name="Console" class="ch.qos.logback.core.ConsoleAppender">

@@ -3,7 +3,7 @@ package com.sisal.transaction.server.util;
 import com.sisal.transaction.server.exception.AuthInvalidTimestampException;
 import com.sisal.transaction.server.exception.AuthSignatureException;
 import com.sisal.transaction.server.exception.AuthTimestampExpiredException;
-import com.sisal.transaction.server.util.logging.CustomRequestWrapper;
+import com.sisal.transaction.server.util.filter.CustomRequestWrapper;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;

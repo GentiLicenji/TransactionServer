@@ -6,7 +6,7 @@ import com.sisal.transaction.server.exception.*;
 import com.sisal.transaction.server.model.rest.ErrorResponse;
 import com.sisal.transaction.server.util.AuthUtil;
 import com.sisal.transaction.server.util.ErrorCode;
-import com.sisal.transaction.server.util.logging.CustomRequestWrapper;
+import com.sisal.transaction.server.util.filter.CustomRequestWrapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;

@@ -1,4 +1,4 @@
-package com.sisal.transaction.server.util.logging;
+package com.sisal.transaction.server.util.filter;
 
 import javax.servlet.ServletOutputStream;
 import javax.servlet.WriteListener;
