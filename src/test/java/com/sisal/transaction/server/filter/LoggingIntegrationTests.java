@@ -6,8 +6,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sisal.transaction.server.model.db.AccountEntity;
 import com.sisal.transaction.server.model.rest.TransactionRequest;
 import com.sisal.transaction.server.service.AccountApiService;
-import com.sisal.transaction.server.util.TestConfig;
 import com.sisal.transaction.server.util.TestUtils;
+import com.sisal.transaction.test.config.TestConfig;
+import com.sisal.transaction.test.config.TestDisableSecurityConfig;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,10 +26,17 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+/**
+ * Integration test suite for LoggingFilter functionality.
+ * <p>
+ * Validates request/response logging behavior by executing Transaction API calls,
+ * ensuring proper logging and log masking of payload information.
+ */
 @SpringBootTest
 @AutoConfigureMockMvc
-@Import(TestConfig.class)
-@ActiveProfiles("test")
+@Import({TestConfig.class, TestDisableSecurityConfig.class})//Loads H2 datasource and disables the SecurityFilter chain.
+@ActiveProfiles("test")//Loads application-test.properties
+        //TODO: Fix no security chain loading.
 class LoggingIntegrationTests {
 
     private static final String BASE_URL = "/api/transactions";
@@ -42,9 +50,9 @@ class LoggingIntegrationTests {
     @Autowired
     private AccountApiService accountAPIService;
     private AccountEntity account;
+
     @Autowired
     private ListAppender<ILoggingEvent> memoryAppender;
-
 
     @BeforeEach
     void setUp() {
@@ -95,7 +103,7 @@ class LoggingIntegrationTests {
                 1453454321358L,
                 "Bob",
                 "Builder",
-                "GB29NWBK60161331926819",
+                "DC29NWBK60161331926819",
                 100.0
         );
     }
