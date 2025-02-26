@@ -23,6 +23,28 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+/**
+ * Unit Tests for TransactionApiService
+ *
+ * <p>Tests transaction creation scenarios including:</p>
+ * <ul>
+ *   <li>Successful transaction creation and account update</li>
+ *   <li>Account save failure with transaction status update</li>
+ *   <li>Initial transaction creation failure</li>
+ * </ul>
+ *
+ * <p>Key test verifications:</p>
+ * <ul>
+ *   <li>Transaction status transitions (COMPLETED → FAILED)</li>
+ *   <li>Account balance updates</li>
+ *   <li>Transaction rollback scenarios</li>
+ *   <li>Repository call sequences</li>
+ * </ul>
+ *
+ * @see TransactionApiService
+ * @see TransactionEntity
+ * @see AccountEntity
+ */
 @ExtendWith(MockitoExtension.class)
 class TransactionApiServiceTest {
 
@@ -165,16 +187,12 @@ class TransactionApiServiceTest {
     }
 
     @Test
-    void whenMainTransactionCreateFails_thenRollbackOccurs() {
-        // Given
-        double initialBalance = testAccount.getBalance();
-
+    void whenMainTransactionCreateFails_thenAccountNeverUpdated() {
+        // Mock account found
         when(accountRepository.findByAccountNumber(ACCOUNT_NUMBER))
                 .thenReturn(Optional.of(testAccount));
 
-        when(accountRepository.save(any(AccountEntity.class)))
-                .thenReturn(testAccount);
-
+        // Mock the transaction create to fail in REQUIRES_NEW transaction
         when(transactionRepository.save(any(TransactionEntity.class)))
                 .thenThrow(new RuntimeException("Transaction save failed"));
 
@@ -187,8 +205,14 @@ class TransactionApiServiceTest {
                 )
         );
 
-        assertEquals(initialBalance, testAccount.getBalance(),
-                "Balance should be unchanged due to rollback");
+        assertAll(
+                "Verify account was not modified",
+                () -> verify(accountRepository, never()).save(any()), // Account was never saved
+                () -> verify(transactionRepository, never())
+                        .findByTransactionId(any()), // Transaction update should never be called
+                () -> verify(transactionRepository, times(1))
+                        .save(any()) // Only the initial Transaction-create failure
+        );
     }
 
 }
