@@ -1,14 +1,18 @@
 package com.sisal.transaction.server.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.sisal.transaction.server.config.auth.HmacAuthenticationProvider;
 import com.sisal.transaction.server.filter.AuthenticationFilter;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.context.SecurityContextHolderFilter;
+import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 
 /**
  * Security configuration class that sets up web security filters and authentication.
@@ -19,19 +23,26 @@ import org.springframework.security.web.context.SecurityContextHolderFilter;
 @EnableWebSecurity
 public class WebSecurityConfig {
 
-    private final AuthenticationFilter authenticationFilter;
-
-    @Autowired
-    public WebSecurityConfig(AuthenticationFilter authenticationFilter) {
-        this.authenticationFilter = authenticationFilter;
+    @Bean
+    public AuthenticationManager authenticationManager(HmacAuthenticationProvider hmacAuthenticationProvider) {
+        return new ProviderManager(hmacAuthenticationProvider);
     }
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    public AuthenticationFilter authenticationFilter(AuthenticationManager authenticationManager, ObjectMapper objectMapper) {
+        return new AuthenticationFilter(authenticationManager, objectMapper);
+    }
+
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http,
+                                           HmacAuthenticationProvider hmacAuthenticationProvider,
+                                           AuthenticationFilter authenticationFilter
+    ) throws Exception {
+
         http.csrf().disable()
-                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                .sessionManagement()
+                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 .and()
-                .addFilterAt(authenticationFilter, SecurityContextHolderFilter.class)
                 .authorizeRequests()
                 .antMatchers("/api/**").permitAll()
                 .antMatchers(EXCLUDED_PATHS).permitAll()

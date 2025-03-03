@@ -1,9 +1,10 @@
 package com.sisal.transaction.server.util;
 
+import com.sisal.transaction.server.config.auth.HmacAuthenticationToken;
 import com.sisal.transaction.server.exception.AuthInvalidTimestampException;
-import com.sisal.transaction.server.exception.AuthSignatureException;
 import com.sisal.transaction.server.exception.AuthTimestampExpiredException;
 import com.sisal.transaction.server.util.filter.CustomRequestWrapper;
+import org.springframework.security.authentication.BadCredentialsException;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
@@ -21,7 +22,7 @@ public class AuthUtil {
     public static void validateTimestamp(String timestampStr, long MAX_TIMESTAMP_DIFF) throws AuthTimestampExpiredException {
         try {
             long timestamp = Long.parseLong(timestampStr);
-            if(timestamp<=0){
+            if (timestamp <= 0) {
                 throw new AuthInvalidTimestampException("Timestamp cannot be 0 or negative.");
             }
             long currentTime = System.currentTimeMillis();
@@ -29,7 +30,7 @@ public class AuthUtil {
 
             if (diff > MAX_TIMESTAMP_DIFF) {
                 throw new AuthTimestampExpiredException("Timestamp expired");
-            }else if(timestamp>currentTime){
+            } else if (timestamp > currentTime) {
                 throw new AuthTimestampExpiredException("Timestamp cannot be in the future");
             }
         } catch (NumberFormatException e) {
@@ -37,24 +38,21 @@ public class AuthUtil {
         }
     }
 
-    public static String calculateHmac(CustomRequestWrapper request, String timestamp, String apiKeyHeaderName, String secretKey) throws IOException {
-        // Create canonical request string including all elements to be verified
-        String method = request.getMethod();
-        String path = request.getRequestURI();
-        String queryString = request.getQueryString() != null ? request.getQueryString() : "";
-        String apiKey = request.getHeader(apiKeyHeaderName);
+    public static String calculateHmac(HmacAuthenticationToken.RequestDetails requestDetails, String secretKey) {
 
-        // Get request body
-        String body = extractRequestBody(request);
-
-        return calculateHmac(method, path, queryString, body, timestamp, apiKey, secretKey);
+        return calculateHmac(requestDetails.getMethod(),
+                requestDetails.getPath(),
+                requestDetails.getQueryString(),
+                requestDetails.getBody(),
+                requestDetails.getTimestamp(),
+                secretKey);
     }
 
-    public static String calculateHmac(String method, String path, String queryString, String body, String timestamp, String apiKey, String secretKey) {
+    public static String calculateHmac(String method, String path, String queryString, String body, String timestamp, String secretKey) {
 
         // Construct the string to be signed
         String dataToSign = method + ":" + path + ":" + queryString + ":" +
-                apiKey + ":" + timestamp + ":" + body;
+                ":" + timestamp + ":" + body;
 
         try {
             Mac hmac = Mac.getInstance("HmacSHA256");
@@ -63,11 +61,11 @@ public class AuthUtil {
             byte[] hmacBytes = hmac.doFinal(dataToSign.getBytes(StandardCharsets.UTF_8));
             return Base64.getEncoder().encodeToString(hmacBytes);
         } catch (NoSuchAlgorithmException | InvalidKeyException e) {
-            throw new AuthSignatureException("HMAC calculation failed", e);
+            throw new BadCredentialsException("Authentication failed: HMAC calculation failed", e);
         }
     }
 
-    private static String extractRequestBody(CustomRequestWrapper requestWrapper) throws IOException {
+    public static String extractRequestBody(CustomRequestWrapper requestWrapper) throws IOException {
         InputStreamReader inputStreamReader = null;
         try {
             inputStreamReader = new InputStreamReader(requestWrapper.getInputStream(), StandardCharsets.UTF_8);
