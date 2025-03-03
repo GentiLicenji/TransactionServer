@@ -9,7 +9,6 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
@@ -44,35 +43,12 @@ public class WebSecurityConfig {
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 .and()
                 .authorizeRequests()
-                .antMatchers("/api/**").permitAll()
-                .antMatchers(EXCLUDED_PATHS).permitAll()
-                .anyRequest().authenticated();
+                .antMatchers(AuthenticationFilter.EXCLUDED_PATHS).permitAll()// Exclude paths from Spring's authorization rules
+                .anyRequest().authenticated()// All other APIs will need authorization including /api/**
+                .and()
+                .authenticationProvider(hmacAuthenticationProvider)// Register the provider
+                .addFilterBefore(authenticationFilter, BasicAuthenticationFilter.class);// Inject filter into the security chain
 
         return http.build();
     }
-
-
-    /**
-     * WhiteList Swagger UI resources and spring actuators.
-     */
-    public static final String[] EXCLUDED_PATHS = {
-            "/swagger-ui/**",
-            "/v3/api-docs/**",
-            "/actuator/**",
-            "/actuator/health",
-            "/error",
-            "/favicon.ico",
-            "/auth/**",
-            "/api/public/**",
-            "/h2-console/**",
-            "/login",
-            "/register",
-            "/health-check",
-            "/metrics/**",
-            "/webjars/**",
-            "/css/**",
-            "/js/**",
-            "/images/**",
-            "/assets/**"
-    };
 }

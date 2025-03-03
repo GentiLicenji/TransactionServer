@@ -119,4 +119,36 @@ public class AuthenticationFilter extends OncePerRequestFilter {
         String jsonResponse = objectMapper.writeValueAsString(errorResponse);
         response.getWriter().write(jsonResponse);
     }
+
+    /**
+     * Excludes the paths defined below from passing through the custom authentication filter.
+     */
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+
+        String path = request.getServletPath();
+        return Arrays.stream(EXCLUDED_PATHS)
+                .anyMatch(pattern -> pathMatcher.match(pattern, path));
+    }
+
+    /**
+     * WhiteList Swagger UI resources and spring actuators.
+     */
+    public static final String[] EXCLUDED_PATHS = {
+            "/swagger-ui/**",              // Swagger UI resources
+            "/v3/api-docs/**",             // OpenAPI 3.0 documentation
+            "/v2/api-docs",                // Swagger 2.x API documentation
+            "/swagger-resources/**",       // Swagger resources
+            "/actuator/**",                // Actuator endpoints
+            "/actuator/health",            // Health check endpoint
+            "/error",                      // Error handling
+            "/favicon.ico",                // Favicon
+            "/api/public/**",              // Public API endpoints
+            "/h2-console/**",              // H2 database console
+            "/webjars/**",                 // WebJars resources
+            "/css/**",                     // CSS resources
+            "/js/**",                      // JavaScript resources
+            "/images/**",                  // Image resources
+            "/assets/**"                   // Asset resources
+    };
 }
