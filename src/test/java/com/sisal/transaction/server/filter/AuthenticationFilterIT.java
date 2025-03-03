@@ -130,18 +130,19 @@ public class AuthenticationFilterIT {
         //Calculate auth signature
         HMAC_SIGNATURE_VALUE = AuthUtil.calculateHmac(HttpMethod.POST.name(),
                 PATH,
-                "",
+                null,
                 "",
                 TIMESTAMP_VALUE,
-                ADMIN_API_KEY_VALUE,
                 ADMIN_SECRET_VALUE);
     }
 
     @Test
     public void whenValidAuthHeader_thenDontReturnErrorResponse() throws Exception {
+
         // Mock the service call
+        TransactionAPIResponse mockResponse = new TransactionAPIResponse();
         when(transactionApiService.createTransaction(any(TransactionAPIRequest.class)))
-                .thenReturn(any(TransactionAPIResponse.class));
+                .thenReturn(mockResponse);
 
         TransactionRequest request = new TransactionRequest()
                 .accountNumber("MockAccount")
@@ -152,10 +153,9 @@ public class AuthenticationFilterIT {
         //Re-Calculate auth signature
         HMAC_SIGNATURE_VALUE = AuthUtil.calculateHmac(HttpMethod.POST.name(),
                 PATH,
-                "",
+                null,
                 jsonRequest,
                 TIMESTAMP_VALUE,
-                ADMIN_API_KEY_VALUE,
                 ADMIN_SECRET_VALUE);
 
         MvcResult result = mockMvc.perform(post(PATH)
@@ -214,18 +214,14 @@ public class AuthenticationFilterIT {
 
         assertAll(
                 () -> assertEquals(HttpStatus.UNAUTHORIZED.toString(), errorResponse.getHttpErrorCode()),
-                () -> assertEquals(ErrorCode.AUTH_GENERIC.getCode(),
+                () -> assertEquals(ErrorCode.AUTH_BAD_CREDENTIALS.getCode(),
                         errorResponse.getErrorCode()),
-                () -> assertEquals("Invalid API key", errorResponse.getErrorMessage())
+                () -> assertEquals("Authentication failed: Invalid API key", errorResponse.getErrorMessage())
         );
     }
 
     @Test
     public void whenMissingHmacHeader_thenThrowValidErrorResponse() throws Exception {
-
-//        doNothing()
-//                .when(filterChain)
-//                .doFilter(any(CustomRequestWrapper.class), any(HttpServletResponse.class));
 
         MvcResult result = mockMvc.perform(post(PATH)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -267,9 +263,9 @@ public class AuthenticationFilterIT {
 
         assertAll(
                 () -> assertEquals(HttpStatus.UNAUTHORIZED.toString(), errorResponse.getHttpErrorCode()),
-                () -> assertEquals(ErrorCode.AUTH_SIGNATURE.getCode(),
+                () -> assertEquals(ErrorCode.AUTH_BAD_CREDENTIALS.getCode(),
                         errorResponse.getErrorCode()),
-                () -> assertEquals("Invalid HMAC signature", errorResponse.getErrorMessage())
+                () -> assertEquals("Authentication failed: Invalid HMAC signature", errorResponse.getErrorMessage())
         );
     }
 
@@ -308,7 +304,6 @@ public class AuthenticationFilterIT {
                 "",
                 "",
                 invalidTimeStamp,
-                ADMIN_API_KEY_VALUE,
                 ADMIN_SECRET_VALUE);
 
         MvcResult result = mockMvc.perform(post(PATH)
@@ -344,7 +339,6 @@ public class AuthenticationFilterIT {
                 "",
                 "",
                 invalidTimeStamp,
-                ADMIN_API_KEY_VALUE,
                 ADMIN_SECRET_VALUE);
 
         MvcResult result = mockMvc.perform(post(PATH)
@@ -381,7 +375,6 @@ public class AuthenticationFilterIT {
                 "",
                 "",
                 pastTimestamp,
-                ADMIN_API_KEY_VALUE,
                 ADMIN_SECRET_VALUE);
 
         MvcResult result = mockMvc.perform(post(PATH)
@@ -418,7 +411,6 @@ public class AuthenticationFilterIT {
                 "",
                 "",
                 futureTimestamp,
-                ADMIN_API_KEY_VALUE,
                 ADMIN_SECRET_VALUE);
 
         MvcResult result = mockMvc.perform(post(PATH)
@@ -446,7 +438,6 @@ public class AuthenticationFilterIT {
     /**
      * TODO: requires more troubleshooting to simulate as an error scenario.
      * Failing to inject FilterChain mock beans
-     *
      */
     @Ignore
     @Test

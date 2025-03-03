@@ -2,7 +2,7 @@ package com.sisal.transaction.server;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sisal.transaction.server.config.ApiKeyProperties;
+import com.sisal.transaction.server.config.auth.ApiKeyProperties;
 import com.sisal.transaction.server.model.db.AccountEntity;
 import com.sisal.transaction.server.model.rest.ErrorResponse;
 import com.sisal.transaction.server.model.rest.TransactionRequest;
@@ -107,10 +107,9 @@ public class TransactionAPIE2ETest {
         //Calculate auth signature
         String HmacSignature = AuthUtil.calculateHmac(HttpMethod.POST.name(),
                 PATH,
-                "",
+                null,
                 objectMapper.writeValueAsString(request),
                 headers.getFirst(TIMESTAMP_HEADER),
-                headers.getFirst(API_KEY_HEADER),
                 apiKeyProperties.getClientByApiKey(ADMIN_API_KEY_VALUE).getSecretKey());
         headers.add(HMAC_HEADER, HmacSignature);
 
@@ -156,10 +155,9 @@ public class TransactionAPIE2ETest {
         //Calculate auth signature
         String HmacSignature = AuthUtil.calculateHmac(HttpMethod.POST.name(),
                 PATH,
-                "",
+                null,
                 objectMapper.writeValueAsString(incompleteRequest),
                 headers.getFirst(TIMESTAMP_HEADER),
-                headers.getFirst(API_KEY_HEADER),
                 apiKeyProperties.getClientByApiKey(ADMIN_API_KEY_VALUE).getSecretKey());
         headers.add(HMAC_HEADER, HmacSignature);
 
@@ -193,10 +191,9 @@ public class TransactionAPIE2ETest {
         //Calculate auth signature
         String HmacSignature = AuthUtil.calculateHmac(HttpMethod.POST.name(),
                 PATH,
-                "",
+                null,
                 "",
                 headers.getFirst(TIMESTAMP_HEADER),
-                headers.getFirst(API_KEY_HEADER),
                 apiKeyProperties.getClientByApiKey(ADMIN_API_KEY_VALUE).getSecretKey());
         headers.add(HMAC_HEADER, HmacSignature);
 
@@ -234,10 +231,9 @@ public class TransactionAPIE2ETest {
         //Calculate auth signature
         String HmacSignature = AuthUtil.calculateHmac(HttpMethod.POST.name(),
                 PATH,
-                "",
+                null,
                 formData.toString(),
                 headers.getFirst(TIMESTAMP_HEADER),
-                headers.getFirst(API_KEY_HEADER),
                 apiKeyProperties.getClientByApiKey(ADMIN_API_KEY_VALUE).getSecretKey());
         headers.add(HMAC_HEADER, HmacSignature);
 
@@ -269,10 +265,9 @@ public class TransactionAPIE2ETest {
         //Calculate auth signature
         String HmacSignature = AuthUtil.calculateHmac(HttpMethod.POST.name(),
                 PATH,
-                "",
+                null,
                 invalidJson,
                 headers.getFirst(TIMESTAMP_HEADER),
-                headers.getFirst(API_KEY_HEADER),
                 apiKeyProperties.getClientByApiKey(ADMIN_API_KEY_VALUE).getSecretKey());
         headers.add(HMAC_HEADER, HmacSignature);
 
