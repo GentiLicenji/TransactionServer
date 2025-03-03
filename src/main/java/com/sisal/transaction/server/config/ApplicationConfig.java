@@ -5,15 +5,12 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.sisal.transaction.server.filter.AuthenticationFilter;
 import com.sisal.transaction.server.filter.LoggingFilter;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-@EnableConfigurationProperties(ApiKeyProperties.class)
 public class ApplicationConfig {
 
     @Bean
@@ -23,11 +20,6 @@ public class ApplicationConfig {
         mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
         mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         return mapper;
-    }
-
-    @Bean
-    public AuthenticationFilter authenticationFilter(ApiKeyProperties apiKeyProperties, ObjectMapper objectMapper) {
-        return new AuthenticationFilter(apiKeyProperties, objectMapper);
     }
 
     @Bean
