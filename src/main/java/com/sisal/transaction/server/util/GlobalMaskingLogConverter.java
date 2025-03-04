@@ -7,6 +7,41 @@ import org.springframework.util.StringUtils;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ * Advanced log masking implementation for sensitive data protection (PII/PCI compliance).
+ * <p>
+ * Controls application-wide logging because it intersects logback's conversion process
+ * to mask sensitive data before it's written to any logging outputs. This converter
+ * implements pattern-based masking for various types of sensitive information in both
+ * JSON payloads and HTTP headers.
+ * <p>
+ * Masked Data Types:
+ * - Account numbers in JSON payloads
+ * - Transaction IDs in JSON payloads
+ * - API Keys in HTTP headers
+ * - HMAC signatures in HTTP headers
+ * - Account numbers in error messages
+ * <p>
+ * Masking Strategy:
+ * - Preserves first {@value #VISIBLE_FRONT} and last {@value #VISIBLE_BACK} characters
+ * - Replaces middle characters with {@value #MASK}
+ * - Special handling for values shorter than {@value #MIN_LENGTH} characters
+ * - Maintains JSON structure and field names while masking only sensitive values
+ * <p>
+ * Configuration in logback.xml:
+ * <conversionRule conversionWord="masked"
+ * converterClass="com.sisal.transaction.server.util.GlobalMaskingLogConverter"/>
+ * <p>
+ * Pattern Layout Usage:
+ * <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %masked%n</pattern>
+ * <p>
+ * Example Masking:
+ * Input:  {"accountNumber": "1234567890123456"}
+ * Output: {"accountNumber": "1234********3456"}
+ *
+ * @see ch.qos.logback.classic.pattern.ClassicConverter
+ * @see ch.qos.logback.classic.spi.ILoggingEvent
+ */
 public class GlobalMaskingLogConverter extends ClassicConverter {
 
     private static final String MASK = "*";
