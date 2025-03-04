@@ -1,6 +1,7 @@
 package com.sisal.transaction.server.service;
 
 
+import com.sisal.transaction.server.config.RateLimitProperties;
 import com.sisal.transaction.server.exception.AccountNotFoundException;
 import com.sisal.transaction.server.exception.InsufficientBalanceException;
 import com.sisal.transaction.server.exception.TransactionRateLimitException;
@@ -65,12 +66,13 @@ public class TransactionApiService {
 
     private static final Logger logger = LoggerFactory.getLogger(TransactionApiService.class);
 
-    private static final int MAX_TRANSACTIONS_PER_MINUTE = 5;
+    private final RateLimitProperties rateLimitProperties;
     private final AccountRepository accountRepository;
     private final TransactionRepository transactionRepository;
 
     @Autowired
-    public TransactionApiService(AccountRepository accountRepository, TransactionRepository transactionRepository) {
+    public TransactionApiService(RateLimitProperties rateLimitProperties, AccountRepository accountRepository, TransactionRepository transactionRepository) {
+        this.rateLimitProperties = rateLimitProperties;
         this.accountRepository = accountRepository;
         this.transactionRepository = transactionRepository;
     }
@@ -105,7 +107,7 @@ public class TransactionApiService {
      *
      * @param accountNumber bank account number
      * @param amount        transaction amount applied on the account
-     * @param type          type of transaction to be applied (deposit/withdrawl)
+     * @param type          type of transaction to be applied (deposit/withdrawal)
      * @return Transaction db record
      */
     @Transactional
@@ -119,7 +121,7 @@ public class TransactionApiService {
 
         if (isRateLimitExceeded(account.getAccountId())) {
             throw new TransactionRateLimitException(
-                    "Rate limit exceeded: Maximum " + MAX_TRANSACTIONS_PER_MINUTE +
+                    "Rate limit exceeded: Maximum " + rateLimitProperties.getMaxPerMinute() +
                             " transactions per minute allowed");
         }
 
@@ -181,11 +183,16 @@ public class TransactionApiService {
      * @return
      */
     private boolean isRateLimitExceeded(Long accountId) {
+
+        if (!rateLimitProperties.isEnabled()) {
+            return false;  // Skip rate limiting if disabled
+        }
+
         OffsetDateTime oneMinuteAgo = OffsetDateTime.now().minusMinutes(1);
         long recentTransactions = transactionRepository
                 .countRecentTransactions(accountId, oneMinuteAgo);
 
-        return recentTransactions >= MAX_TRANSACTIONS_PER_MINUTE;
+        return recentTransactions >= rateLimitProperties.getMaxPerMinute();
     }
 
     /**
