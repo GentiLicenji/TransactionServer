@@ -1,10 +1,9 @@
 # TransactionServer
 Demo project showcasing the capabilities of Gentian Licenji as a Senior Software Engineer.
-<br\>A robust enterprise-grade financial transaction processing service built with Spring Boot, implementing secure account operations and transaction management.
-<br\>The system features a RESTful API architecture with HMAC-based authentication, comprehensive error handling, and strict transaction validation protocols.
+<br/>A robust enterprise-grade financial transaction processing service built with Spring Boot, implementing secure account operations and transaction management.
+<br/>The system features a RESTful API architecture with HMAC-based authentication, comprehensive error handling, and strict transaction validation protocols.
 ## Project overview
 The following is the project structure to be expected:
-
 ```markdown
 📁 main
 ├── 📁 java
@@ -76,7 +75,7 @@ During an approximate 5-day work, the following major tickets were completed:
 * [SISAL-06]: Swagger UI setup.
 * [SISAL-07]: BugFixing: Transaction API service data flow.
 
-## How-to Setup
+## How to set up?
 Quick guide to get started on the project.
 ### 0. Required Software 🛠
 ```markdown
@@ -153,16 +152,17 @@ curl -i http://localhost:8080/actuator/health
   * Invalid amount (>10000)
   * Invalid type
 
-### 4. Integration Tests 🧪
+### 4. Integration Tests🧪
+Run all tests
+    ```bash
+    ./mvnw test
+    ```
+Run the main end to end test class
 ```bash
-# Run all tests
-./mvnw test
-
-# Run main end to end test class
 ./mvnw test -Dtest=TransactionAPIE2ETest
 ```
-
-## Automated API changes - Swagger Codegen
+## OpenAPI (Swagger)—RESTful API specification
+### Automated API changes - Swagger Codegen
 All api changes and definitions are captured through [OpenAPI Specification (OAS) standard](https://swagger.io/specification/).
 <br/>Transaction Server utilizes [swagger codegen library](https://github.com/swagger-api/swagger-codegen) to generate code based on this spec.
 <br/>This generator can be used to create controller and model classes, which reduce the code changes required when changing a Rest Api spec.
@@ -454,6 +454,100 @@ No Licenses.
 ## Project status
 Deadline - Feb 21st,2025.
 <br/> Project was completed by Feb 25th,2025.
+
+## Appendix—Performance overrDrive 
+
+### Fun Over-Engineering example: Path Exclusion Efficiency for Authentication
+Below is a diagram showing the request path through the early stage of the filter chain in a Spring boot service:
+```
+                                  +---------------+
+                                  |    Request    |
+                                  +---------------+
+                                            |
+                                            |
+                                            v
+                                  +---------------------+
+                                  |  Servlet Container  |
+                                  +---------------------+
+                                            |
+                                            |
+                                            v
+                                  +---------------------+
+                                  |  DispatcherServlet  |
+                                  +---------------------+
+                                            |
+                                            |
+                                            v
+                                  +--------------------+
+                                  |  RequestMatcher    |
+                                  | (matches pattern)  |
+                                  +--------------------+
+                                            |
+                                            |
+                                            v
+                                  +--------------------------+
+                                  |    SecurityFilterChain   |
+                                  |  (executes filter chain) |
+                                  +--------------------------+
+                                            |
+                                            |
+                                            v
+                                  +------------------------------------+
+                                  |  WebAsyncManagerIntegrationFilter  |
+                                  +------------------------------------+
+                                            |
+                                            |
+                                            v
+                                  +------------------------------------+
+                                  |  SecurityContextPersistenceFilter  |
+                                  +------------------------------------+
+                                            |
+                                            |
+                                            v
+                                  +----------------------+
+                                  |  HeaderWriterFilter  |
+                                  +----------------------+
+                                            |
+                                            |
+                                            v
+```
+The Authentication filter sits between the SecurityContextPersistenceFilter and HeaderWriterFilter.
+<br/>Doing Request matcher is more performant than shouldNotFilter()
+implementation since it avoids calling three filters.
+<br/>However, we are talking about the magnitude of less than half a micro second:
+```
+Results over 1,000,000 iterations:
+RequestMatcher approach: 150.45 ns/op
+ShouldNotFilter approach: 301.23 ns/op
+Difference: 150.78 ns/op
+ShouldNotFilter is 2.00x slower
+Real-world impact per request: 0.151 microseconds
+Impact at 10000 req/sec: 1.508 ms added latency per second
+```
+**Analyzing Pattern matching for strings.**
+
+Below is a sample benchmark that compares three path-matching approaches for a Spring Security “exclude paths” scenario:
+1) A PathTrie-based matcher
+2) An AntPathMatcher-based approach (iterating over a list)
+3) A hybrid approach (checking a set for exact matches, then AntPathMatcher for wildcard patterns)
+Representative Timing Results
+
+• Each result below is the average time per operation in nanoseconds, after a warm-up phase.  
+• Results are approximate and depend on environment, JVM optimizations, and the complexity of patterns.
+
+Approach             | Avg ns/op  | Notes
+---------------------|------------|------------------------------------------------------------
+PathTrie             | 70-130 ns  | Single-pass matching, especially fast for multiple wildcards
+AntPathMatcher       | 200-400 ns | Iterates over all patterns; each uses regex-like matching
+Hybrid (Set + List) | 100-250 ns | Fast for exact matches; wildcard still uses AntPathMatcher
+
+Genti's opinion:
+<br/>The String comparison results are even more insignificant
+when taking into account an average of 4–5 wild card pattern matches.
+<br/>Code readability should take precedent here
+because that difference is usually dwarfed by other factors in a production system
+(network latency, I/O, database queries, etc.).
+<br/>Total saved time: (filter order and path matching) is about 0.5 micro seconds.
 
 ### References and other resources <a name="references"></a>
 * [Swagger codegen](https://swagger.io/docs/open-source-tools/swagger-codegen/)
