@@ -140,9 +140,19 @@ INCLUDE (transaction_type)
 WHERE status = 'COMPLETED';
 ```
 Insert an account record if you want to test the server using Postman Test Suite:
+<br/>The structure breakdown:
+* GB: Country code (Great Britain)
+* XX: Check digits (automatically calculated)
+* NWBK: Bank identifier (in this case, NatWest Bank)
+* 601613: Sort code
+* 31926819: Account number
 ```sql
 INSERT INTO transaction_system.accounts (account_number, first_name, last_name, balance, created_at, version)
 VALUES ('GB29NWBK60161331926819', 'John', 'Doe', 1000.00, SYSUTCDATETIME(), 0);
+INSERT INTO transaction_system.accounts (account_number, first_name, last_name, balance, created_at, version)
+VALUES ('GB94NWBK60161331926822', 'John', 'Snow', 1000.00, SYSUTCDATETIME(), 0);
+INSERT INTO transaction_system.accounts (account_number, first_name, last_name, balance, created_at, version)
+VALUES ('GB82NWBK60161331926820', 'Bob', 'Builder', 1000.00, SYSUTCDATETIME(), 0);
 ```
 ### 3.2 Advanced Implementation
 I could have implemented the transaction creation business logic within the database using stored procedures. 
