@@ -40,9 +40,11 @@ public class AuthUtil {
 
     public static String calculateHmac(HmacAuthenticationToken.RequestDetails requestDetails, String secretKey) {
 
+        String queryString = requestDetails.getQueryString() != null ? requestDetails.getQueryString() : "";
+
         return calculateHmac(requestDetails.getMethod(),
                 requestDetails.getPath(),
-                requestDetails.getQueryString(),
+                queryString,
                 requestDetails.getBody(),
                 requestDetails.getTimestamp(),
                 secretKey);
@@ -51,7 +53,7 @@ public class AuthUtil {
     public static String calculateHmac(String method, String path, String queryString, String body, String timestamp, String secretKey) {
 
         // Construct the string to be signed
-        String dataToSign = method + ":" + path + ":" + queryString + ":" +
+        String dataToSign = method + ":" + path + ":" + queryString +
                 ":" + timestamp + ":" + body;
 
         try {
@@ -66,16 +68,11 @@ public class AuthUtil {
     }
 
     public static String extractRequestBody(CustomRequestWrapper requestWrapper) throws IOException {
-        InputStreamReader inputStreamReader = null;
-        try {
-            inputStreamReader = new InputStreamReader(requestWrapper.getInputStream(), StandardCharsets.UTF_8);
-            return new BufferedReader(inputStreamReader)
-                    .lines()
-                    .collect(Collectors.joining(" "));
-        } finally {
-            assert inputStreamReader != null;
-            inputStreamReader.close();
-        }
+        try (InputStreamReader inputStreamReader = new InputStreamReader(requestWrapper.getInputStream(), StandardCharsets.UTF_8);
+             BufferedReader bufferedReader = new BufferedReader(inputStreamReader)) {
 
+            return bufferedReader.lines()
+                    .collect(Collectors.joining());
+        }
     }
 }
