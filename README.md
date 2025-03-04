@@ -1,6 +1,7 @@
 # TransactionServer
-Demo project showcasing the capabilities of Gena tian Licenji as a Senior Software Engineer.
-
+Demo project showcasing the capabilities of Gentian Licenji as a Senior Software Engineer.
+<br\>A robust enterprise-grade financial transaction processing service built with Spring Boot, implementing secure account operations and transaction management.
+<br\>The system features a RESTful API architecture with HMAC-based authentication, comprehensive error handling, and strict transaction validation protocols.
 ## Project overview
 The following is the project structure to be expected:
 
@@ -83,6 +84,7 @@ Quick guide to get started on the project.
 * Maven 3.6+
 * Git
 * Docker (optional, for containerization)
+* Kubernetes (optional, for orchestration)
 ```
 ### 1. Clone repository
 git clone [repository-url]
@@ -91,7 +93,7 @@ git clone [repository-url]
 ```markdown
 * Install Lombok plugin
 * Enable annotation processing
-* Import as Maven project
+* Import as a Maven project
 * Set Java 8 as SDK
 ```
 ### 3. Database 📊
@@ -114,8 +116,8 @@ Please see the [DB Setup README](./DBSetup.md) on setup details.
 3. Run the server jar by executing
     ```shell
     mvn spring-boot:run
-   ```
-## How to test
+    ```
+## How to test?
 
 ### 1. Health Check 🏥
 ```bash
@@ -127,21 +129,21 @@ curl -i http://localhost:8080/actuator/health
 ```
 
 ### 2. Curl Commands 📟
-```bash
-# Set variables
-TIMESTAMP=$(date +%s000)
-API_KEY="8x7HHSG2J5ns9LzN3k4m6P5Q"
-HMAC=$(echo -n "${API_KEY}${TIMESTAMP}{\"accountNumber\":\"GB29NWBK60161331926819\",\"transactionType\":\"DEPOSIT\",\"amount\":1000.00}" | \
-openssl dgst -sha256 -hmac "bK7dF9qW2pR5vT8xL4mN3jH6cU9wY1aE" | cut -d' ' -f2)
-
-# Make request
-curl -i -X POST http://localhost:8080/api/transactions \
-  -H "Content-Type: application/json" \
-  -H "X-API-Key: ${API_KEY}" \
-  -H "X-Timestamp: ${TIMESTAMP}" \
-  -H "X-HMAC-Signature: ${HMAC}" \
-  -d '{"accountNumber":"GB29NWBK60161331926819","transactionType":"DEPOSIT","amount":1000.00}'
-```
+  ```bash
+  # Set variables
+  TIMESTAMP=$(date +%s000)
+  API_KEY="8x7HHSG2J5ns9LzN3k4m6P5Q"
+  HMAC=$(echo -n "${API_KEY}${TIMESTAMP}{\"accountNumber\":\"GB29NWBK60161331926819\",\"transactionType\":\"DEPOSIT\",\"amount\":1000.00}" | \
+  openssl dgst -sha256 -hmac "bK7dF9qW2pR5vT8xL4mN3jH6cU9wY1aE" | cut -d' ' -f2)
+  
+  # Make request
+  curl -i -X POST http://localhost:8080/api/transactions \
+    -H "Content-Type: application/json" \
+    -H "X-API-Key: ${API_KEY}" \
+    -H "X-Timestamp: ${TIMESTAMP}" \
+    -H "X-HMAC-Signature: ${HMAC}" \
+    -d '{"accountNumber":"GB29NWBK60161331926819","transactionType":"DEPOSIT","amount":1000.00}'
+  ```
 
 ### 3. Postman 🚀
 1. Import [collection](api-docs/postman-test-suite.json)
@@ -191,6 +193,11 @@ All api changes and definitions are captured through [OpenAPI Specification (OAS
 To view the swagger spec in the browser, go on localhost:8080/swagger-ui/.
 <br>TODO: currently this is bugged due to the auth filter setup.
 Needs more time for investigation.
+### API Updates
+To perform api updates through the code base, please run maven build with codegen profile:
+    ```bash
+    mvn clean package -P codegen
+    ```
 
 ## Design Decisions and Best Practices
 ### Architecture Overview
@@ -346,7 +353,6 @@ src/
     └── resources/
         └── application-test.properties  (H2 config)
 ```
-
 
 ## Third-party library usage.
 This Section explains the reasoning behind selecting various libraries.
