@@ -74,6 +74,7 @@ During an approximate 5-day work, the following major tickets were completed:
 * [SISAL-05]: Exception handling / Logging / Validation
 * [SISAL-06]: Swagger UI setup.
 * [SISAL-07]: BugFixing: Transaction API service data flow.
+* [SISAL-08]: Load Testing with JMeter.
 
 ## How to set up?
 Quick guide to get started on the project.
@@ -157,7 +158,7 @@ Run all tests
     ```bash
     ./mvnw test
     ```
-Run the main end to end test class
+Run the main end-to-end test class
 ```bash
 ./mvnw test -Dtest=TransactionAPIE2ETest
 ```
@@ -455,8 +456,16 @@ No Licenses.
 Deadline - Feb 21st,2025.
 <br/> Project was completed by Feb 25th,2025.
 
-## Appendix—Performance overrDrive 
+## Appendix: BEAST Mode (Benchmark Evaluation And Stress Testing Mode)" 🦁
 
+### JMeter Load Testing
+I disabled the rate limiting service and created a performance test suite for transactions API.
+<br/> Load tested with 1000 requests/second and four different bank accounts.
+Here are my interesting performance issues:
+<br/>![img.png](src/main/resources/readme/img.png)
+Top issues:
+* OptimisticLockingFailure on account db table
+* 
 ### Fun Over-Engineering example: Path Exclusion Efficiency for Authentication
 Below is a diagram showing the request path through the early stage of the filter chain in a Spring boot service:
 ```

@@ -30,7 +30,7 @@
     </appender>
 
     <!-- Root Logger -->
-    <root level="INFO">
+    <root level="ERROR">
         <appender-ref ref="Console"/>
         <appender-ref ref="File"/>
     </root>
