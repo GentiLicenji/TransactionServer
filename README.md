@@ -303,7 +303,7 @@ but can be computationally intensive and can cause transaction locking in high c
 
 #### Maximum transaction amount
 This is done automatically as a rest requirement on the spec. Jackson validation through annotation is set up for this.
-#### Minimum account balance
+#### Minimum-account balance
 This is set up as an SQL constraint at the database level through the table SQL schema. 
 <br/>It is also as business logic in the TransactionApiService, but can be removed as redundant.
 ## Database Choice
@@ -423,6 +423,7 @@ SpringDoc is the new team, where old members from SpringFox moved to.
   - Legacy projects
   - Specific requirement for Swagger 2.0
   - Cannot upgrade existing codebase
+
 ### Spring Boot DevTools Features
 (Source:Claude 3.5 Sonnet)
 <br/>Here's a concise breakdown of Spring Boot DevTools
@@ -455,17 +456,243 @@ No Licenses.
 ## Project status
 Deadline - Feb 21st,2025.
 <br/> Project was completed by Feb 25th,2025.
+<br/> Project is being enhanced and updated with no fixed timeline.
 
 ## Appendix: BEAST Mode (Benchmark Evaluation And Stress Testing Mode)" 🦁
-
-### JMeter Load Testing
 I disabled the rate limiting service and created a performance test suite for transactions API.
-<br/> Load tested with 1000 requests/second and four different bank accounts.
-Here are my interesting performance issues:
-<br/>![img.png](src/main/resources/readme/img.png)
-Top issues:
-* OptimisticLockingFailure on account db table
-* 
+<br/>Due to heavy load testing, I disabled all loggers and set root logger to error only.
+<br/>This optimizes the application for performance.
+
+### JMeter Load Testing—Phase 1 (default spring boot configurations)
+(Source:Claude 3.5 Sonnet)
+<br/>I'll break down the default settings for both REST and JPA/Hibernate in Spring Boot 2.7.18:
+**REST Controller Default Settings:**
+
+**REST Controller Default Settings: Embedded Server (Tomcat):**
+- Max threads: 200
+- Min spare threads: 10
+- Connection timeout: 20000ms (20 seconds)
+- Max connections: 10000
+- Accept count: 100
+
+**JPA/Hibernate Default Settings:**
+
+1. Connection Pool (HikariCP):
+- Maximum pool size: 10
+- Minimum idle: 10
+- Idle timeout: 600000ms (10 minutes)
+- Connection timeout: 30000ms (30 seconds)
+- Max lifetime: 1800000ms (30 minutes)
+
+2. Hibernate Properties:
+```properties
+spring.jpa.hibernate.ddl-auto=create-drop
+spring.jpa.show-sql=false
+spring.jpa.open-in-view=true
+spring.jpa.hibernate.naming.physical-strategy=org.springframework.boot.orm.jpa.hibernate.SpringPhysicalNamingStrategy
+spring.jpa.hibernate.naming.implicit-strategy=org.springframework.boot.orm.jpa.hibernate.SpringImplicitNamingStrategy
+```
+
+3. Transaction Management:
+- Default transaction timeout: none
+- Default propagation: REQUIRED
+- Default isolation: DEFAULT (database default)
+
+4. JPA Properties:
+```properties
+spring.jpa.properties.hibernate.dialect: auto-detected based on database
+spring.jpa.properties.hibernate.format_sql=false
+spring.jpa.properties.hibernate.generate_statistics=false
+spring.jpa.properties.hibernate.jdbc.batch_size=none
+spring.jpa.properties.hibernate.jdbc.fetch_size=none
+```
+
+To monitor these settings and get statistics:
+
+1. For REST Controllers:
+- Enable Spring Boot Actuator for detailed metrics
+- Key metrics available at:
+  * /actuator/metrics/http.server.requests
+  * /actuator/metrics/tomcat.threads.current
+  * /actuator/metrics/tomcat.threads.busy
+
+2. For JPA/Hibernate:
+- Enable statistics:
+```properties
+spring.jpa.properties.hibernate.generate_statistics=true
+logging.level.org.hibernate.stat=debug
+```
+- Enable SQL logging:
+```properties
+spring.jpa.show-sql=true
+spring.jpa.properties.hibernate.format_sql=true
+```
+
+### First Test—Phase 1 (1k Requests/second)
+Load tested with 1000 requests/second and four different bank accounts.
+<br/>The Server was able to process 250 req/seconds on average.
+<br/>Here are my interesting performance issues:
+<br/>![img.png](performance-tests/jmeter/results/img.png)
+<br/>The biggest issue is the OptimisticLockingFailure on account db table.
+
+### Second Test—Phase 1 (100k Requests/second)
+Load tested with 100k requests/second and four different bank accounts.
+<br/>The Server was able to process 950 req/seconds on average.
+<br/>Here are my interesting performance issues:
+<br/>![img_1.png](performance-tests/jmeter/results/img_1.png)
+<br/>Top issues are related to the rest connection listeners:
+<br/>![img.png](performance-tests/jmeter/results/rest-error-list.png)
+
+### Aggressive optimization suggestions—Phase 2 (Theory)
+(Source:Claude 3.5 Sonnet)
+
+<br/>For handling 100K requests/second on a single instance, you'll need aggressive optimization at multiple levels.
+<br/>Here's a comprehensive approach:
+
+1. JVM Tuning
+```bash
+JAVA_OPTS="\
+ -Xms4g -Xmx4g \
+ -XX:+UseG1GC \
+ -XX:MaxGCPauseMillis=100 \
+ -XX:+ParallelRefProcEnabled \
+ -XX:+UseStringDeduplication \
+ -XX:+UseNUMA \
+ -XX:+UseCompressedOops"
+```
+
+2. Server Configuration
+```properties
+# Tomcat optimization
+server.tomcat.threads.max=1000
+server.tomcat.threads.min-spare=100
+server.tomcat.max-connections=20000
+server.tomcat.accept-count=1000
+server.tomcat.max-keep-alive-requests=10000
+server.tomcat.connection-timeout=2000
+
+# Enable compression
+server.compression.enabled=true
+server.compression.min-response-size=1024
+```
+
+3. Database Optimization
+```properties
+# HikariCP settings
+spring.datasource.hikari.maximum-pool-size=100
+spring.datasource.hikari.minimum-idle=50
+spring.datasource.hikari.connection-timeout=2000
+spring.datasource.hikari.idle-timeout=300000
+spring.datasource.hikari.max-lifetime=1200000
+
+# Hibernate performance
+spring.jpa.properties.hibernate.jdbc.batch_size=100
+spring.jpa.properties.hibernate.order_inserts=true
+spring.jpa.properties.hibernate.order_updates=true
+spring.jpa.properties.hibernate.jdbc.batch_versioned_data=true
+spring.jpa.properties.hibernate.cache.use_second_level_cache=true
+spring.jpa.properties.hibernate.cache.use_query_cache=true
+```
+
+4. Application Level Optimizations (Only Applicable if we can switch to Async API calls)
+```java
+@Configuration
+@EnableCaching
+public class ApplicationConfig {
+    
+    @Bean
+    public CacheManager cacheManager() {
+        return new ConcurrentMapCacheManager();
+    }
+    
+    @Bean
+    public AsyncTaskExecutor taskExecutor() {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        executor.setCorePoolSize(50);
+        executor.setMaxPoolSize(100);
+        executor.setQueueCapacity(5000);
+        executor.setThreadNamePrefix("Async-");
+        return executor;
+    }
+}
+
+@RestController
+public class HighPerformanceController {
+    
+    @Cacheable(value = "responseCache", key = "#id")
+    @GetMapping("/api/resource/{id}")
+    public ResponseEntity<?> getResource(@PathVariable String id) {
+        // Implementation
+    }
+    
+    // Use CompletableFuture for async operations
+    @GetMapping("/api/async")
+    public CompletableFuture<ResponseEntity<?>> asyncEndpoint() {
+        return CompletableFuture.supplyAsync(() -> {
+            // Implementation
+        });
+    }
+}
+```
+
+5. OS Level Tuning (Linux)
+```bash
+# /etc/sysctl.conf
+net.core.somaxconn=65535
+net.ipv4.tcp_max_syn_backlog=65535
+net.core.netdev_max_backlog=65535
+net.ipv4.tcp_fin_timeout=30
+net.ipv4.tcp_tw_reuse=1
+net.ipv4.ip_local_port_range="1024 65535"
+net.core.rmem_max=16777216
+net.core.wmem_max=16777216
+```
+
+6. Architecture Best Practices:
+- Use non-blocking I/O (WebFlux if possible)
+- Implement circuit breakers for external services
+- Use connection pooling for all external resources
+- Implement request throttling/rate limiting
+- Use efficient serialization (Protocol Buffers/MessagePack)
+- Minimize object creation in hot paths
+- Use bulk operations where possible
+- Implement response caching strategically
+
+7. Monitoring Setup:
+```properties
+# Actuator endpoints
+management.endpoints.web.exposure.include=*
+management.metrics.export.prometheus.enabled=true
+management.metrics.distribution.percentiles-histogram.http.server.requests=true
+```
+
+8. Code Level Considerations:
+```java
+// Use StringBuilder for string concatenation
+// Avoid recursive calls
+// Use primitive types where possible
+// Minimize object creation in loops
+// Use appropriate data structures (e.g., ArrayDeque over LinkedList)
+// Consider using value objects for immutable data
+```
+
+9. Additional Recommendations:
+- Profile your application to identify bottlenecks
+- Use JMH for micro-benchmarking critical paths
+- Consider using GraalVM for native compilation
+- Implement proper connection pooling for all external services
+- Use appropriate batch sizes for database operations
+- Implement proper error handling with fallbacks
+
+Remember to:
+- Monitor GC behavior
+- Watch for memory leaks
+- Profile CPU usage
+- Monitor thread states
+- Track response times distribution
+- Set up proper alerting
+
+This configuration should give you a good starting point for handling 100K req/s, but you'll need to tune these values based on your specific use case and hardware capabilities.
 ### Fun Over-Engineering example: Path Exclusion Efficiency for Authentication
 Below is a diagram showing the request path through the early stage of the filter chain in a Spring boot service:
 ```
