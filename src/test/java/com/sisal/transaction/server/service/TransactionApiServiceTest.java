@@ -1,5 +1,6 @@
 package com.sisal.transaction.server.service;
 
+import com.sisal.transaction.server.config.RateLimitProperties;
 import com.sisal.transaction.server.model.db.AccountEntity;
 import com.sisal.transaction.server.model.db.TransactionEntity;
 import com.sisal.transaction.server.repository.AccountRepository;
@@ -54,6 +55,9 @@ class TransactionApiServiceTest {
     @Mock
     private TransactionRepository transactionRepository;
 
+    @Mock
+    private RateLimitProperties rateLimitProperties;
+
     @InjectMocks
     private TransactionApiService transactionApiService;
 
@@ -86,6 +90,9 @@ class TransactionApiServiceTest {
         when(transactionRepository.save(any(TransactionEntity.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
+        when(rateLimitProperties.isEnabled())
+                .thenReturn(false);
+
         // When
         TransactionEntity result = transactionApiService.createTransaction(
                 ACCOUNT_NUMBER,
@@ -104,6 +111,10 @@ class TransactionApiServiceTest {
 
     @Test
     void whenAccountSaveFails_thenTransactionIsSavedWithFailedStatus() {
+
+        when(rateLimitProperties.isEnabled())
+                .thenReturn(false);
+
         // Given
         ArgumentCaptor<TransactionEntity> transactionCaptor =
                 ArgumentCaptor.forClass(TransactionEntity.class);
@@ -188,6 +199,10 @@ class TransactionApiServiceTest {
 
     @Test
     void whenMainTransactionCreateFails_thenAccountNeverUpdated() {
+
+        when(rateLimitProperties.isEnabled())
+                .thenReturn(false);
+
         // Mock account found
         when(accountRepository.findByAccountNumber(ACCOUNT_NUMBER))
                 .thenReturn(Optional.of(testAccount));
