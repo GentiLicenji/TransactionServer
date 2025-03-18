@@ -459,14 +459,18 @@ Deadline - Feb 21st,2025.
 <br/> Project is being enhanced and updated with no fixed timeline.
 
 ## Appendix: BEAST Mode (Benchmark Evaluation And Stress Testing Mode)" 🦁
+The goal of this section is to stress test the backend server in 3 phases:
+- Phase 0: default settings with 1k requests/second
+- Phase 1: max tuned with 1k requests/second
+- Phase 2: max tuned with 100k requests/second
+
 I disabled the rate limiting service and created a performance test suite for transactions API.
 <br/>Due to heavy load testing, I disabled all loggers and set root logger to error only.
 <br/>This optimizes the application for performance.
 
-### JMeter Load Testing—Phase 1 (default spring boot configurations)
+### JMeter Load Testing—Phase 0 (default spring boot configurations)
 (Source:Claude 3.5 Sonnet)
 <br/>I'll break down the default settings for both REST and JPA/Hibernate in Spring Boot 2.7.18:
-**REST Controller Default Settings:**
 
 **REST Controller Default Settings: Embedded Server (Tomcat):**
 - Max threads: 200
@@ -535,7 +539,7 @@ Load tested with 1000 requests/second and four different bank accounts.
 <br/>![img.png](performance-tests/jmeter/results/img.png)
 <br/>The biggest issue is the OptimisticLockingFailure on account db table.
 
-### Second Test—Phase 1 (100k Requests/second)
+### Second Test—Phase 2 (100k Requests/second)
 Load tested with 100k requests/second and four different bank accounts.
 <br/>The Server was able to process 950 req/seconds on average.
 <br/>Here are my interesting performance issues:
