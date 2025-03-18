@@ -23,6 +23,7 @@ public class TestConfig {
                 .password("")
                 .build();
     }
+
     @Bean
     @Primary
     public ListAppender<ILoggingEvent> memoryAppender() {

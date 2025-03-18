@@ -54,7 +54,6 @@ public class SwaggerConfig {
      * SpringFox assumes spring boot is using antPath matcher for its model view controller.
      * However, spring boot 2.6+ is using the PathPattern-based matcher for its MVC.
      *
-     * @return
      */
     @Bean
     public static BeanPostProcessor springfoxHandlerProviderBeanPostProcessor() {
