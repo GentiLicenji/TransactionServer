@@ -66,13 +66,13 @@ Key components:
 - 🛠️ `util`: Helper classes
 
 ### Work breakdown
-During an approximate 5-day work, the following major tickets were completed:
+During an approximate seven days (56 hours) of work, the following major tickets were completed:
 * [SISAL-01]: Initial project setup + Documentation
 * [SISAL-02]: Unit testing
 * [SISAL-03]: DB connectivity and repository setup
 * [SISAL-04]: Authentication Implementation
 * [SISAL-05]: Exception handling / Logging / Validation
-* [SISAL-06]: Swagger UI setup.
+* [SISAL-06]: Swagger UI setup / Swagger Code Generation.
 * [SISAL-07]: BugFixing: Transaction API service data flow.
 * [SISAL-08]: Load Testing with JMeter.
 
@@ -229,7 +229,7 @@ Our authentication implementation uses a Hash-based Message Authentication Code 
 
 #### 2.Key Security Features
 
-The authentication mechanism validates three critical components:
+The authentication mechanism validates three critical parts:
 - API key for client identification
 - Timestamp to prevent replay attacks
 - HMAC signature ensuring request integrity
@@ -693,6 +693,63 @@ Remember to:
 - Set up proper alerting
 
 This configuration should give you a good starting point for handling 100K req/s, but you'll need to tune these values based on your specific use case and hardware capabilities.
+### TODO- Phase 2 (Practical application) Errors found after upgrading server tomcat settings:
+0.
+2025-03-12 20:25:39.978 [http-nio-8080-exec-885] ERROR c.s.t.s.e.GlobalExceptionHandler - Unexpected error:
+javax.persistence.PersistenceException: Could not create transaction record
+at com.sisal.transaction.server.service.TransactionApiService.createTransaction(TransactionApiService.java:161)
+at com.sisal.transaction.server.service.TransactionApiService.createTransaction(TransactionApiService.java:85)
+2025-03-12 20:25:39.978 [http-nio-8080-exec-937] ERROR c.s.t.s.s.TransactionApiService - Failed to create initial transaction
+org.springframework.orm.ObjectOptimisticLockingFailureException: Object of class [com.sisal.transaction.server.model.db.AccountEntity] with identifier [20041]: optimistic locking failed; nested exception is org.hibernate.StaleObjectStateException: Row was updated or deleted by another transaction (or unsaved-value mapping was incorrect) : [com.sisal.transaction.server.model.db.AccountEntity#20041]
+at org.springframework.orm.jpa.vendor.HibernateJpaDialect.convertHibernateAccessException(HibernateJpaDialect.java:315)
+at org.springframework.orm.jpa.vendor.HibernateJpaDialect.translateExceptionIfPossible(HibernateJpaDialect.java:233)
+
+1. 2025-03-12 20:32:35.650 [http-nio-8080-exec-165] ERROR c.s.t.s.filter.AuthenticationFilter - Authentication failed: Invalid HMAC signature
+   org.springframework.security.authentication.BadCredentialsException: Authentication failed: Invalid HMAC signature
+   at com.sisal.transaction.server.config.auth.HmacAuthenticationProvider.authenticate(HmacAuthenticationProvider.java:41)
+   at org.springframework.security.authentication.ProviderManager.authenticate(ProviderManager.java:182)
+
+2. 
+Caused by: com.fasterxml.jackson.core.JsonParseException: Unexpected character ('<' (code 60)): expected a valid value (JSON String, Number, Array, Object or token 'null', 'true' or 'false')
+at [Source: (org.springframework.util.StreamUtils$NonClosingInputStream); line: 4, column: 14]
+at com.fasterxml.jackson.core.JsonParser._constructError(JsonParser.java:2391)
+
+3. Jmeter Failures:
+summary = 223858 in 00:06:38 =  562.3/s Avg:  1591 Min:     0 Max:  5112 Err: 205970 (92.01%)
+java.lang.OutOfMemoryError: Java heap space
+Dumping heap to java_pid24852.hprof ...
+Heap dump file created [1363936278 bytes in 5.940 secs]
+summary +    458 in 00:00:31 =   14.9/s Avg:   515 Min:   323 Max:  1552 Err:   257 (56.11%) Active: 8122 Started: 8122 Finished: 0
+summary +     23 in 00:00:28 =    0.8/s Avg:  4930 Min:   318 Max:  7790 Err:    10 (43.48%) Active: 8122 Started: 8123 Finished: 1
+summary +     15 in 00:00:26 =    0.6/s Avg: 14638 Min:   942 Max: 30180 Err:     9 (60.00%) Active: 8110 Started: 8123 Finished: 13
+ERROR StatusConsoleListener An exception occurred processing Appender jmeter-log
+org.apache.logging.log4j.core.appender.AppenderLoggingException: java.lang.OutOfMemoryError: Java heap space
+at org.apache.logging.log4j.core.config.AppenderControl.tryCallAppender(AppenderControl.java:164)
+at org.apache.logging.log4j.core.config.AppenderControl.callAppender0(AppenderControl.java:133)
+at org.apache.logging.log4j.core.config.AppenderControl.callAppenderPreventRecursion(AppenderControl.java:124)
+at org.apache.logging.log4j.core.config.AppenderControl.callAppender(AppenderControl.java:88)
+at org.apache.logging.log4j.core.config.LoggerConfig.callAppenders(LoggerConfig.java:705)
+at org.apache.logging.log4j.core.config.LoggerConfig.processLogEvent(LoggerConfig.java:663)
+at org.apache.logging.log4j.core.config.LoggerConfig.log(LoggerConfig.java:639)
+at org.apache.logging.log4j.core.config.LoggerConfig.log(LoggerConfig.java:575)
+summary +     18 in 00:00:31 =    0.6/s Avg:  8678 Min:     8 Max: 32703 Err:    12 (66.67%) Active: 8097 Started: 8123 Finished: 26
+Uncaught Exception java.lang.OutOfMemoryError: Java heap space in thread Thread[High Load Tests 1-4511,5,main]. See log file for details.
+Uncaught Exception java.lang.OutOfMemoryError: Java heap space in thread Thread[High Load Tests 1-20,5,main]. See log file for details.
+summary +     12 in 00:00:27 =    0.4/s Avg:  6900 Min:   938 Max: 18928 Err:     8 (66.67%) Active: 8087 Started: 8123 Finished: 36ERROR StatusConsoleListener An exception occurred processing Appender jmeter-log
+
+Exception: java.lang.OutOfMemoryError thrown from the UncaughtExceptionHandler in thread "High Load Tests 1-2003"
+
+Exception: java.lang.OutOfMemoryError thrown from the UncaughtExceptionHandler in thread "High Load Tests 1-6516"
+
+Caused by: java.lang.NoClassDefFoundError: Could not initialize class org.apache.logging.log4j.util.PrivateSecurityManagerStackTraceUtilUncaught Exception java.lang.OutOfMemoryError: Java heap space in thread Thread[High Load Tests 1-6605,5,main]. See log file for details.
+
+        at org.apache.logging.log4j.util.StackLocator.getCurrentStackTrace(StackLocator.java:85)
+        at org.apache.logging.log4j.util.StackLocatorUtil.getCurrentStackTrace(StackLocatorUtil.java:115)
+Uncaught Exception java.lang.OutOfMemoryError: Java heap space in thread Thread[High Load Tests 1-3184,5,main]. See log file for details.       at org.apache.logging.log4j.core.impl.ThrowableProxy.<init>(ThrowableProxy.java:111)
+
+        at org.apache.logging.log4j.core.impl.ThrowableProxy.<init>(ThrowableProxy.java:96)
+
+
 ### Fun Over-Engineering example: Path Exclusion Efficiency for Authentication
 Below is a diagram showing the request path through the early stage of the filter chain in a Spring boot service:
 ```
