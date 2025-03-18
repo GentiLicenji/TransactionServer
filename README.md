@@ -66,7 +66,7 @@ Key components:
 - 🛠️ `util`: Helper classes
 
 ### Work breakdown
-During an approximate seven days (56 hours) of work, the following major tickets were completed:
+During an approximate eight days (64 hours) of work, the following major tickets were completed:
 * [SISAL-01]: Initial project setup + Documentation
 * [SISAL-02]: Unit testing
 * [SISAL-03]: DB connectivity and repository setup
@@ -446,17 +446,15 @@ SpringDoc is the new team, where old members from SpringFox moved to.
 * Performance impact
 
 ## Contributing
-This is a product of © Sisal.
+This is a product of Gentian Licenji for a demo interview with a Fintech Betting Company (Sisal).
 <br/>Developers:
 Gentian Licenji
 
 ## License
-No Licenses.
+This project is provided without any licensing restrictions and is free to use, modify, and distribute.
 
 ## Project status
-Deadline - Feb 21st,2025.
-<br/> Project was completed by Feb 25th,2025.
-<br/> Project is being enhanced and updated with no fixed timeline.
+The project is being enhanced and updated with no fixed timeline.
 
 ## Appendix: BEAST Mode (Benchmark Evaluation And Stress Testing Mode)" 🦁
 The goal of this section is to stress test the backend server in 3 phases:
